@@ -7,7 +7,6 @@ export interface Session {
   paused: boolean;
   applause: boolean;
   opinion: Opinion | null;
-  crowdWrap: number;
   joined: boolean;
 }
 
@@ -19,11 +18,10 @@ export type Action =
   | { type: 'pause' }
   | { type: 'vote'; opinion: Opinion }
   | { type: 'applause' }
-  | { type: 'crowd'; wrap: number }
   | { type: 'join' };
 
 export function initialSession(): Session {
-  return { mode: 'practice', elapsed: 0, paused: false, applause: false, opinion: null, crowdWrap: 24, joined: false };
+  return { mode: 'practice', elapsed: 0, paused: false, applause: false, opinion: null, joined: false };
 }
 
 export function phaseOf(session: Session): Phase {
@@ -39,7 +37,6 @@ export function transition(session: Session, action: Action): Session {
   if (action.type === 'start') return { ...initialSession(), mode: 'talk' };
   if (action.type === 'reset') return initialSession();
   if (action.type === 'join' && session.mode === 'practice') return { ...session, joined: true };
-  if (action.type === 'crowd') return { ...session, crowdWrap: Math.min(100, Math.max(0, action.wrap)) };
   if (action.type === 'pause' && session.mode === 'talk' && !session.applause && session.elapsed < 600) return { ...session, paused: !session.paused };
   if (action.type === 'tick' && session.mode === 'talk' && !session.paused && !session.applause) {
     return { ...session, elapsed: Math.min(600, session.elapsed + Math.max(0, action.seconds)) };
@@ -54,26 +51,6 @@ export function transition(session: Session, action: Action): Session {
     return { ...session, opinion: action.opinion };
   }
   return session;
-}
-
-export function readSession(value: string | null): Session {
-  if (!value) return initialSession();
-  try {
-    const data: unknown = JSON.parse(value);
-    if (typeof data !== 'object' || data === null) return initialSession();
-    const sample = data as Record<string, unknown>;
-    if (
-      !['practice', 'talk'].includes(String(sample.mode)) ||
-      typeof sample.elapsed !== 'number' || !Number.isFinite(sample.elapsed) || sample.elapsed < 0 || sample.elapsed > 600 ||
-      typeof sample.paused !== 'boolean' || typeof sample.applause !== 'boolean' ||
-      typeof sample.joined !== 'boolean' ||
-      (sample.opinion !== null && sample.opinion !== 'keep' && sample.opinion !== 'wrap') ||
-      typeof sample.crowdWrap !== 'number' || !Number.isFinite(sample.crowdWrap) || sample.crowdWrap < 0 || sample.crowdWrap > 100
-    ) return initialSession();
-    return sample as unknown as Session;
-  } catch {
-    return initialSession();
-  }
 }
 
 export function timeLabel(seconds: number): string {

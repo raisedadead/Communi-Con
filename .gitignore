@@ -2,6 +2,7 @@ node_modules/
 dist/
 .scratchpad/
 .wrangler/
+.dev.vars*
 .DS_Store
 .env*
 !.env.example

@@ -1,52 +1,63 @@
 # Communi-Con
 
-A visual concept for IndiaFOSS 2026. Attendees join a cursor playground, then give private feedback during a sample talk. Co-chairs see the results and choose when to cue the stage.
+A shared demo for IndiaFOSS 2026. Attendees join a practice circle from their phones, then give private feedback during a sample talk. Co-chairs see the results and choose when to cue applause.
 
-The [official event page](https://platform.fossunited.org/c/indiafoss/2026communi-con) lists 27 September 2026 in Hall 1. Checked 22 September 2026.
+## Try the demo
 
-## Run
+1. Open `/admin` on the laptop and select **Create a demo room**.
+2. Open **Stage view** from that room. Scan its QR code with a phone, or use **Copy participant link** on the co-chair page.
+3. On the phone, tap **Join the circle**. The stage shows connected participants.
+4. On the laptop, select **Start sample talk**, then **05:00 · Vote**. The phone follows the session and opens its ballot.
+5. Vote from the phone. Only the co-chair sees the totals. Changing a choice replaces that ballot.
+6. Select **08:00 · Wrap up**, then **Cue a round of applause**. The phone and stage show the cue. **Reset demo** returns the room to practice.
+
+Use links from the same room. The browser that creates a room holds its co-chair access cookie. Opening its `/admin?room=…` URL in another browser does not grant access. The cookie lasts one day; create a new demo room if access expires.
+
+## Run locally
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open the URLs printed by Vite:
+Open <http://127.0.0.1:8000/admin>. This builds the frontend and starts a local Cloudflare Worker with PartyServer, PartySocket, and Durable Objects. The talk clock and ballots belong to the server. Reloading a phone restores its choice. The clock continues if the co-chair closes its tab.
 
-- `/`: participant experience. Practice, listening, private ballot, and closing acknowledgement.
-- `/stage`: projector view, QR code, and shared cursor artwork. No vote totals.
-- `/admin`: co-chair interface preview, private sample results, timer, and walkthrough controls. No link to this route appears on the participant or stage page.
+After editing frontend files, run `npm run build` again. Room data stays in `.wrangler/`, which Git ignores.
 
-Start with `/admin`. Open the audience and stage links in separate tabs in the same browser. Click **Start sample talk**, then use **05:00 · Vote** and **08:00 · Wrap up** to preview the transitions. Try a ballot choice in the audience tab. The co-chair can then cue applause. **Reset demo** returns to practice and clears the local choice.
+## Share with phones
 
-The timer runs while a co-chair tab is open. Same-origin tabs share local demo state. Where supported, a browser Web Lock ensures that only one co-chair tab advances the timer.
+Start a temporary tunnel in one terminal:
 
-## Phone preview
+```sh
+cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8000 --http-host-header localhost:8000
+```
 
-Use the network URL printed by Vite from a phone on the same reachable network. Put that address in the co-chair page's **Participant demo URL** field to update the stage QR code. A phone cannot reach this computer through `localhost`.
+Copy the HTTPS origin printed by cloudflared. Build the app, then start the preview in another terminal with that origin. Stop any earlier preview process first.
 
-Each device runs an independent simulation. To preview the ballot on a phone, open `/admin` in that phone's browser, advance to five minutes, and open `/` in another tab. This is only a prototype walkthrough; live attendees will not use the co-chair route.
+```sh
+npm run build
+npm run preview -- --var PUBLIC_ORIGIN:https://YOUR-URL.trycloudflare.com
+```
 
-## Scope and limits
+Open that public origin at `/admin`, create a room, and scan its new QR code. Keep the Mac, preview process, and tunnel running. A new tunnel address needs a new room. `npm run preview` disables Wrangler's local explorer and observability routes before exposing the app.
 
-- This is a static visual demo, not a live voting service. Cursor artwork and sample results are simulated.
+## Demo boundaries
+
+- Feedback opens at five minutes. The co-chair can cue applause from eight minutes. Ten minutes ends the sample talk. Walkthrough buttons skip the wait.
+- Votes do not trigger a stage effect. Audience and stage connections receive no aggregate results. Each attendee receives only their own choice.
+- The practice circle represents connected browsers. It shares joining the circle, not continuous pointer movement.
+- One browser profile represents one participant. There is no ticket check or one-person-one-vote guarantee. Co-chair access is limited to the creating browser; there are no organizer accounts or invitations.
 - The sample talk is fictional. Timings and labels are proposals for organizer review.
-- Feedback opens at five minutes. A co-chair can cue applause from eight minutes. Audience input alone does not trigger it. The sample talk stops at ten minutes.
-- Only the co-chair UI displays totals. There is no authentication or data access control in this demo. Anyone who opens `/admin` can use its controls. Do not use it for a real event or private ballots.
-- One browser profile represents one demo participant. This is not one-person-one-vote enforcement.
-- No Cloudflare service is configured or deployed. The future live target is 500+ participants; event capacity is untested.
-- Fonts load from Google Fonts, with system-font fallbacks. The remaining app assets are bundled locally.
+- The Worker runs locally through the tunnel. No production Cloudflare resources are deployed. Capacity for 500+ participants and physical-phone/venue behavior remain unverified.
+- Fonts load from Google Fonts, with system-font fallbacks.
 
-For the proposed Cloudflare implementation, see [hosting research](docs/cloudflare-research.md). It recommends Workers static assets, PartyServer, Durable Objects, and PartySocket, subject to runtime and venue tests. Enforce co-chair authentication and authorization on the server, and send results only to authenticated co-chair connections.
-
-For an alternate design exploration, paste the [Open Design prompt](docs/open-design-prompt.md) into the design tool.
+See [Cloudflare research](docs/cloudflare-research.md) for event-scale follow-up and the [Open Design prompt](docs/open-design-prompt.md) for another visual exploration.
 
 ## Validate
 
 ```sh
 npm run check
 npm run build
-npm run preview
 ```
 
-`build` runs the TypeScript check and creates `dist/`. It does not deploy anything.
+These check the browser and Worker TypeScript and build `dist/`. They do not deploy anything.

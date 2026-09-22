@@ -1,6 +1,6 @@
 # Cloudflare feasibility research
 
-Checked 2026-09-22. Future live-build target: 500+ concurrent participants in the organizer's Cloudflare account. The current scope is a visual demo with a simulated crowd. No backend runtime was tested.
+Checked 2026-09-22. Future live-build target: 500+ concurrent participants in the organizer's Cloudflare account. The demo now uses PartyServer, PartySocket, and a local Durable Object behind a temporary Cloudflare Tunnel. Independent browser sessions passed shared state, private voting, and co-chair authorization checks. This does not establish event capacity or deployed Cloudflare behavior.
 
 ## Documented capabilities
 
@@ -32,13 +32,13 @@ Derived traffic model: if `N` phones each send `r` updates per second, ingress i
 
 Recommendation for 500+ phones: send rate-limited inputs and return aggregates and acknowledgements. Give the stage display bounded or sampled particles, animated locally from shared state. Keep practice rooms separate. Choose shards only after a representative load test.
 
-## Proposed starting architecture
+## Demo architecture
 
-Recommendation, not an implementation decision:
+Implemented locally:
 
 `Phone / stage display / moderator → Worker + static assets → PartyServer room → SQLite-backed Durable Object storage`
 
-Use PartySocket in the browser and one object per independent room initially. Persist rounds, phases, deadlines, moderator changes, and accepted ballots. Keep cursor position disposable. Proposed assumption: wrapup requires host approval enforced by the server. These components are documented above; event-scale performance is UNVERIFIED.
+The browser uses PartySocket, with one object per room. The server persists the round, clock, co-chair credential hash, and accepted ballots. Co-chair approval controls the stage cue. The practice action shares circle membership; it does not stream pointer positions. Event-scale performance is UNVERIFIED.
 
 ## Required evidence before the event
 

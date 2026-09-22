@@ -123,7 +123,6 @@ button, .eyebrow, .canvas-label, .canvas-meta { font-weight: 600; }
 .ballot-receipt svg { width: 12px; height: 12px; flex-basis: 12px; }
 .confirmation { display: flex; align-items: center; gap: 10px; font-size: 11px; line-height: 1.5; padding: 14px; background: #e7efda; border-radius: 8px; margin-top: 26px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-.storage-notice { padding: 12px 20px; background: #f2ddbb; font-size: 12px; }
 
 body[data-role='stage'] { background: var(--ink); color: var(--paper); }
 .stage-main { max-width: 1920px; height: 100svh; min-height: 600px; margin: 0 auto; padding: 0 60px; display: flex; flex-direction: column; }
@@ -197,17 +196,16 @@ body[data-role='stage'] { background: var(--ink); color: var(--paper); }
 .demo-controls p:not(.eyebrow), .share-panel p:not(.eyebrow) { font-size: 11px; color: #626a5b; line-height: 1.6; margin-top: 8px; }
 .demo-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .demo-buttons .button { background: #f5f7ef; min-height: 40px; font-size: 10px; padding: 9px; }
-.crowd-control { grid-column: 1 / -1; max-width: 490px; display: block; }
-.crowd-control > span { display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
-.crowd-control strong { font-family: var(--display); font-weight: 500; font-size: 15px; }
-.crowd-control input { width: 100%; display: block; margin: 6px 0 0; min-height: 30px; accent-color: #586e37; }
-.crowd-control small { font-size: 9px; color: #626a5b; }
 .share-panel { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 35px; padding: 16px 0 35px; }
-.share-panel form > label { font-size: 10px; font-weight: 600; }
-.share-input { display: flex; gap: 8px; margin-top: 8px; }
-.share-input input { width: 100%; min-width: 0; border: 1px solid #bcc7ad; background: #f9faf5; border-radius: 8px; padding: 11px 12px; font-size: 12px; }
-.share-input button { flex-shrink: 0; font-size: 10px; }
-.share-input button svg { width: 15px; height: 15px; flex-basis: 15px; }
+.share-panel .button { margin-top: 18px; }
+.admin-main .join-block .eyebrow, .admin-main .join-block p { color: var(--muted); }
+.admin-main .join-address { color: var(--ink); }
+.room-code { display: block; font-size: 10px; letter-spacing: 1.2px; margin-top: 10px; }
+.welcome { max-width: 720px; margin: 0 auto; padding: 80px 24px 120px; }
+.welcome h1 { font-size: clamp(36px, 6vw, 60px); line-height: 1.05; letter-spacing: -2.5px; margin-top: 24px; font-weight: 500; }
+.welcome > p:not(.eyebrow) { font-size: 16px; line-height: 1.7; color: var(--muted); margin-top: 24px; max-width: 520px; }
+.welcome .button { margin-top: 30px; }
+.connection-notice { position: sticky; bottom: 0; background: #e7efda; color: var(--ink); padding: 15px 24px; font-size: 14px; text-align: center; box-shadow: 0 -2px 15px #20282115; }
 
 @media (min-width: 1600px) {
   .stage-main { padding-left: 80px; padding-right: 80px; }
@@ -251,6 +249,7 @@ body[data-role='stage'] { background: var(--ink); color: var(--paper); }
   .intro-copy { font-size: 12px; margin-top: 16px; }
   .intro-aside { display: none; }
   .experience-grid { grid-template-columns: 1fr; }
+  .talk-active .intro, .talk-active .playground { display: none; }
   .playground { min-height: 340px; border-radius: 14px; }
   .canvas-wrap { min-height: 255px; }
   .canvas-top { padding: 19px 20px 0; }
@@ -315,14 +314,8 @@ body[data-role='stage'] { background: var(--ink); color: var(--paper); }
   .host-cue p { font-size: 11px; }
   .demo-controls { padding: 22px; gap: 20px; }
   .demo-buttons .button { min-height: 46px; font-size: 11px; }
-  .crowd-control > span { font-size: 12px; }
-  .crowd-control input { min-height: 44px; }
-  .crowd-control small { font-size: 10px; }
   .share-panel { gap: 20px; padding-top: 5px; }
   .share-panel p:not(.eyebrow) { font-size: 12px; }
-  .share-input { flex-wrap: wrap; }
-  .share-input input { min-height: 48px; font-size: 16px; }
-  .share-input button { font-size: 12px; width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

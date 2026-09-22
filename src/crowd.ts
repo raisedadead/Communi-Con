@@ -1,5 +1,6 @@
 import { phaseOf } from './session';
 import type { Session } from './session';
+import type { Member } from './protocol';
 
 interface Particle {
   x: number;
@@ -7,22 +8,17 @@ interface Particle {
   seed: number;
   color: string;
   size: number;
+  joined: boolean;
 }
 
 const colors = ['#d3f86a', '#d3f86a', '#83ac87', '#b9a5e4', '#f1ad75', '#d8e3c8'];
 
-export function mountCrowd(canvas: HTMLCanvasElement, getSession: () => Session, onJoin?: () => void): () => void {
+export function mountCrowd(canvas: HTMLCanvasElement, getSession: () => Session, getMembers: () => Member[], getParticipant: () => string | null, onJoin?: () => void): () => void {
   const context = canvas.getContext('2d');
   if (!context) return () => {};
   const ctx = context;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const particles: Particle[] = Array.from({ length: 90 }, (_, i) => ({
-    x: ((i * 73 + 31) % 97) / 97,
-    y: ((i * 37 + 13) % 89) / 89,
-    seed: i,
-    color: colors[i % colors.length],
-    size: 6 + (i % 4) * 2,
-  }));
+  const particles = new Map<string, Particle>();
   let width = 1;
   let height = 1;
   let frame = 0;
@@ -54,6 +50,17 @@ export function mountCrowd(canvas: HTMLCanvasElement, getSession: () => Session,
     if (!alive) return;
     const state = getSession();
     const phase = phaseOf(state);
+    const members = getMembers().filter(member => !onJoin || member.id !== getParticipant());
+    const ids = new Set(members.map(member => member.id));
+    for (const id of particles.keys()) if (!ids.has(id)) particles.delete(id);
+    for (const member of members) {
+      const existing = particles.get(member.id);
+      if (existing) existing.joined = member.joined;
+      else {
+        const seed = parseInt(member.id.slice(0, 8), 16);
+        particles.set(member.id, { x: ((seed * 73 + 31) % 97) / 97, y: ((seed * 37 + 13) % 89) / 89, seed, color: colors[seed % colors.length], size: 12, joined: member.joined });
+      }
+    }
     const motion = reduced.matches ? 0 : time / 1400;
     const centerX = width * 0.5;
     const centerY = height * 0.46;
@@ -87,21 +94,22 @@ export function mountCrowd(canvas: HTMLCanvasElement, getSession: () => Session,
         ctx.fillText(state.joined ? 'Better, together.' : 'Meet in the middle.', centerX, centerY - 2);
         ctx.fillStyle = '#a9b5a3';
         ctx.font = '12px ui-monospace, monospace';
-        ctx.fillText(state.joined ? 'YOU MADE THE CIRCLE' : 'THERE’S ROOM FOR YOU', centerX, centerY + 23);
+        ctx.fillText(state.joined ? `${getMembers().filter(member => member.joined).length} IN THE CIRCLE` : 'THERE’S ROOM FOR YOU', centerX, centerY + 23);
       }
     }
 
-    for (const particle of particles) {
+    let index = 0;
+    for (const particle of particles.values()) {
       const i = particle.seed;
       const angle = i * 2.39996 + motion * 0.035;
       let targetX: number;
       let targetY: number;
-      if (phase === 'practice' && state.joined) {
+      if (phase === 'practice' && particle.joined) {
         const spread = radius + (i % 5) * 8 - 14;
         targetX = centerX + Math.cos(angle) * spread;
         targetY = centerY + Math.sin(angle) * spread;
       } else if (phase === 'applause') {
-        targetX = width * (0.07 + (i / 90) * 0.86);
+        targetX = width * (0.07 + (index / Math.max(1, particles.size - 1)) * 0.86);
         targetY = height * (0.50 + Math.sin(i * 0.115 + motion * 1.4) * 0.17 + ((i % 4) - 1.5) * 0.055);
       } else if (phase === 'practice') {
         const spread = radius * (1.22 + (i % 6) * 0.15);
@@ -115,6 +123,7 @@ export function mountCrowd(canvas: HTMLCanvasElement, getSession: () => Session,
       particle.x += (targetX / width - particle.x) * ease;
       particle.y += (targetY / height - particle.y) * ease;
       cursor(particle.x * width, particle.y * height + Math.sin(motion + i) * (reduced.matches ? 0 : 3), particle.size, particle.color, Math.sin(i) * 0.7);
+      index += 1;
     }
 
     if (onJoin && phase === 'practice') {

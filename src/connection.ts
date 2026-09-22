@@ -1,0 +1,52 @@
+import PartySocket from 'partysocket';
+import type { Action } from './session';
+import type { Role, RoomSnapshot, ServerMessage } from './protocol';
+
+interface Callbacks {
+  state: (snapshot: RoomSnapshot) => void;
+  connection: (connected: boolean) => void;
+  error: (message: string) => void;
+}
+
+export function connectRoom(room: string, role: Role, callbacks: Callbacks): { send: (action: Action) => boolean; close: () => void } {
+  let socket: PartySocket | undefined;
+  let snapshot: RoomSnapshot | undefined;
+  let ready = false;
+  let closed = false;
+
+  async function start(): Promise<void> {
+    try {
+      const response = await fetch(`/api/rooms/${room}/session?role=${role}`);
+      if (!response.ok) {
+        const body = await response.json() as { error?: string };
+        throw new Error(body.error || 'The room is unavailable. Try again.');
+      }
+      snapshot = await response.json() as RoomSnapshot;
+      if (closed) return;
+      callbacks.state(snapshot);
+      socket = new PartySocket({ host: location.host, party: 'room', room, query: { role }, maxEnqueuedMessages: 0, minReconnectionDelay: 500, maxReconnectionDelay: 5000 });
+      socket.addEventListener('message', event => {
+        const message = JSON.parse(String(event.data)) as ServerMessage;
+        if (message.type === 'error') { callbacks.error(message.message); return; }
+        snapshot = message;
+        ready = true;
+        callbacks.connection(true);
+        callbacks.state(message);
+      });
+      socket.addEventListener('close', () => { ready = false; callbacks.connection(false); });
+      socket.addEventListener('error', () => { ready = false; callbacks.connection(false); });
+    } catch (error) {
+      callbacks.error(error instanceof Error ? error.message : 'Could not connect. Check your connection and try again.');
+    }
+  }
+
+  void start();
+  return {
+    send(action): boolean {
+      if (!ready || !snapshot || !socket || socket.readyState !== WebSocket.OPEN) return false;
+      socket.send(JSON.stringify({ type: 'action', action, roundId: snapshot.roundId, version: snapshot.version }));
+      return true;
+    },
+    close(): void { closed = true; ready = false; socket?.close(); },
+  };
+}
