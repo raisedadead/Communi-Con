@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.scratchpad/
+.wrangler/
+.DS_Store
+.env*
+!.env.example
