@@ -9,13 +9,14 @@ export interface Session {
 }
 
 export type Action =
-  | { type: 'start' }
+  | { type: 'start'; speaker?: string }
   | { type: 'reset' }
   | { type: 'tick'; seconds: number }
-  | { type: 'seek'; seconds: number }
+  | { type: 'nudge'; seconds: number }
   | { type: 'pause' }
   | { type: 'vote'; opinion: Opinion }
-  | { type: 'applause' };
+  | { type: 'applause' }
+  | { type: 'speaker'; name: string };
 
 export function initialSession(): Session {
   return { mode: 'lobby', elapsed: 0, paused: false, applause: false };
@@ -42,11 +43,9 @@ export function transition(session: Session, action: Action): Session {
   if (action.type === 'tick' && session.mode === 'talk' && !session.paused && !session.applause) {
     return { ...session, elapsed: Math.min(600, session.elapsed + Math.max(0, action.seconds)) };
   }
-  if (action.type === 'applause' && ['eligible', 'ended'].includes(phaseOf(session)) && !session.paused) {
-    return { ...session, applause: true };
-  }
-  if (action.type === 'seek' && session.mode === 'talk') {
-    return { ...session, elapsed: Math.min(600, Math.max(0, action.seconds)), paused: false, applause: false };
+  if (action.type === 'applause' && session.mode === 'talk' && !session.applause) return { ...session, paused: false, applause: true };
+  if (action.type === 'nudge' && session.mode === 'talk' && !session.applause) {
+    return { ...session, elapsed: Math.min(600, Math.max(0, session.elapsed + action.seconds)) };
   }
   return session;
 }

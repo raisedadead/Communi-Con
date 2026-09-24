@@ -2,7 +2,7 @@ import { routePartykitRequest, Server } from 'partyserver';
 import type { Connection, ConnectionContext, WSMessage } from 'partyserver';
 import { ballotOpen, initialSession, transition } from '../src/session';
 import type { Action, Opinion, Session } from '../src/session';
-import type { Results, Role, RoomSnapshot } from '../src/protocol';
+import type { Reactions, Results, Role, RoomSnapshot } from '../src/protocol';
 
 interface Env {
   ROOM: DurableObjectNamespace<Room>;
@@ -17,6 +17,7 @@ interface RoomRecord {
   roundId: string;
   version: number;
   votes: Record<string, Opinion>;
+  speaker?: string;
 }
 
 interface Peer {
@@ -26,6 +27,7 @@ interface Peer {
 
 const roomPattern = /^[a-f0-9]{32}$/;
 const tokenPattern = /^[a-f0-9]{64}$/;
+const reactionLimit = 12;
 
 function token(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
@@ -68,11 +70,17 @@ function sameOrigin(request: Request): boolean {
   return request.headers.get('Origin') === new URL(request.url).origin;
 }
 
+function cleanName(name: string): string {
+  return [...name.replace(/[\p{Cc}\u202A-\u202E\u2066-\u2069]/gu, '').replace(/\s+/g, ' ').trim()].slice(0, 60).join('').trim();
+}
+
 function parseAction(value: unknown): Action | null {
   if (!value || typeof value !== 'object') return null;
   const action = value as Record<string, unknown>;
-  if (action.type === 'start' || action.type === 'reset' || action.type === 'pause' || action.type === 'applause') return { type: action.type };
-  if (action.type === 'seek' && typeof action.seconds === 'number' && [0, 300, 480, 600].includes(action.seconds)) return { type: 'seek', seconds: action.seconds };
+  if (action.type === 'start') return typeof action.speaker === 'string' ? { type: 'start', speaker: cleanName(action.speaker) } : { type: 'start' };
+  if (action.type === 'reset' || action.type === 'pause' || action.type === 'applause') return { type: action.type };
+  if (action.type === 'nudge' && (action.seconds === 60 || action.seconds === -60)) return { type: 'nudge', seconds: action.seconds };
+  if (action.type === 'speaker' && typeof action.name === 'string') return { type: 'speaker', name: cleanName(action.name) };
   if (action.type === 'vote' && (action.opinion === 'keep' || action.opinion === 'wrap')) return { type: 'vote', opinion: action.opinion };
   return null;
 }
@@ -81,6 +89,8 @@ export class Room extends Server<Env> {
   static options = { hibernate: true };
   private room: RoomRecord | undefined;
   private presenceTimer: ReturnType<typeof setTimeout> | undefined;
+  private reactionTimer: ReturnType<typeof setTimeout> | undefined;
+  private reactions: Record<Opinion, number> = { keep: 0, wrap: 0 };
 
   async onStart(): Promise<void> {
     this.room = await this.ctx.storage.get<RoomRecord>('room');
@@ -115,7 +125,7 @@ export class Room extends Server<Env> {
     const record = this.room!;
     const snapshot: RoomSnapshot = {
       type: 'state', roundId: record.roundId, version: record.version, session: this.current(),
-      opinion: peer.participant ? record.votes[peer.participant] || null : null, participants,
+      opinion: peer.participant ? record.votes[peer.participant] || null : null, participants, speaker: record.speaker || '',
     };
     if (peer.role === 'admin') {
       const votes = Object.values(record.votes);
@@ -142,6 +152,18 @@ export class Room extends Server<Env> {
       this.presenceTimer = undefined;
       if (this.room) this.send(this.peers('audience'));
     }, 3000);
+  }
+
+  private react(opinion: Opinion): void {
+    this.reactions[opinion] = Math.min(reactionLimit, this.reactions[opinion] + 1);
+    this.reactionTimer ??= setTimeout(() => {
+      const message: Reactions = { type: 'reactions', ...this.reactions };
+      this.reactionTimer = undefined;
+      this.reactions = { keep: 0, wrap: 0 };
+      for (const connection of [...this.peers('audience'), ...this.peers('stage')]) {
+        if (connection.readyState === WebSocket.READY_STATE_OPEN) connection.send(JSON.stringify(message));
+      }
+    }, 1000);
   }
 
   private async schedule(): Promise<void> {
@@ -192,7 +214,7 @@ export class Room extends Server<Env> {
     const peer = connection.state;
     const vote = action.type === 'vote';
     if ((vote && peer.role !== 'audience') || (!vote && peer.role !== 'admin')) { fail('Only a co-chair can control the talk.'); return; }
-    if (payload.roundId !== this.room.roundId || (!vote && payload.version !== this.room.version)) {
+    if (payload.roundId !== this.room.roundId || (!vote && action.type !== 'speaker' && payload.version !== this.room.version)) {
       fail('The talk changed. Check the screen and try again.');
       this.send([connection]);
       return;
@@ -200,19 +222,30 @@ export class Room extends Server<Env> {
     const current = this.current();
     if (action.type === 'vote') {
       if (!ballotOpen(current)) { fail('Voting is closed.'); return; }
+      const changed = this.room.votes[peer.participant!] !== action.opinion;
       this.room.votes[peer.participant!] = action.opinion;
       await this.ctx.storage.put('room', this.room);
       this.send([connection, ...this.peers('admin')]);
+      if (changed) this.react(action.opinion);
+      return;
+    }
+    if (action.type === 'speaker') {
+      this.room.speaker = action.name;
+      this.room.version += 1;
+      await this.ctx.storage.put('room', this.room);
+      this.send(this.getConnections<Peer>());
       return;
     }
     const next = transition(current, action);
     if (next === current) { fail('That control is not available now.'); return; }
     this.room.session = next;
     this.room.clockAt = Date.now();
-    if (action.type === 'start' || action.type === 'reset' || (action.type === 'seek' && action.seconds < 300)) {
+    if (action.type === 'start' || action.type === 'reset' || (action.type === 'nudge' && next.elapsed < 300)) {
       this.room.roundId = crypto.randomUUID();
       this.room.votes = {};
     }
+    if (action.type === 'reset') this.room.speaker = '';
+    if (action.type === 'start' && action.speaker !== undefined) this.room.speaker = action.speaker;
     this.room.version += 1;
     await this.ctx.storage.put('room', this.room);
     await this.schedule();

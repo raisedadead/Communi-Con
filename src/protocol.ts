@@ -15,7 +15,14 @@ export interface RoomSnapshot {
   session: Session;
   opinion: Opinion | null;
   participants: number;
+  speaker: string;
   results?: Results;
 }
 
-export type ServerMessage = RoomSnapshot | { type: 'error'; message: string };
+export interface Reactions {
+  type: 'reactions';
+  keep: number;
+  wrap: number;
+}
+
+export type ServerMessage = RoomSnapshot | Reactions | { type: 'error'; message: string };

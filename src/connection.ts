@@ -1,9 +1,10 @@
 import PartySocket from 'partysocket';
 import type { Action } from './session';
-import type { Role, RoomSnapshot, ServerMessage } from './protocol';
+import type { Reactions, Role, RoomSnapshot, ServerMessage } from './protocol';
 
 interface Callbacks {
   state: (snapshot: RoomSnapshot) => void;
+  reactions: (reactions: Reactions) => void;
   connection: (connected: boolean) => void;
   error: (message: string, fatal: boolean) => void;
 }
@@ -40,6 +41,7 @@ export function connectRoom(room: string, role: Role, key: string, callbacks: Ca
       socket.addEventListener('message', event => {
         const message = JSON.parse(String(event.data)) as ServerMessage;
         if (message.type === 'error') { callbacks.error(message.message, false); return; }
+        if (message.type === 'reactions') { callbacks.reactions(message); return; }
         snapshot = message;
         ready = true;
         callbacks.connection(true);

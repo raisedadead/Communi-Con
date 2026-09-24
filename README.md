@@ -7,16 +7,21 @@ Anonymous audience votes for community talks. The audience votes on phones. The 
 - Each talk has a 10-minute clock.
 - From 05:00, each phone can vote **Keep going** or **Wrap it up**. A phone can change its vote until 10:00.
 - Only the co-chairs see the count. The phones and the stage screen do not show it.
-- From 08:00, a co-chair can cue the applause. All phones and the stage screen show the cue.
+- Each new vote sends a 👍 or 👎 reaction to the phones and the stage screen. A reaction shows the direction of a vote, not the count.
+- From 08:00, a co-chair can cue the applause. All phones and the stage screen show the cue. If the speaker finishes early, a co-chair can cue it before 08:00.
 
 ## Run the event
 
 1. Open `/admin` on a phone. Enter the event passphrase. Tap **Create room**.
-1. Tap **Open stage screen**. Show that screen on the projector. It shows the QR code for the audience.
+1. Tap **Open stage screen**. Show that screen on the projector between talks. It shows the QR code for the audience and the name of the next speaker.
 1. Tap **Share co-chair link** to give control to the other co-chairs.
-1. For each talk, tap **Start talk** when the speaker starts. Tap **Cue applause** to end the talk. Tap **Back to lobby** before the next talk.
+1. For each talk:
+   1. Type the name in **Next speaker**. Tap **Save name** to show it on the phones and the stage screen.
+   1. Tap **Start talk** when the speaker starts.
+   1. Tap **Cue applause** to end the talk.
+   1. Tap **Next talk**. This clears the votes and the speaker name.
 
-Use **Set the clock** to rehearse the phases or to correct a late start.
+If you tap **Start talk** late, tap **+1 min** to correct the clock. To rehearse the phases, tap **+1 min** until the clock shows the phase.
 
 ## Set the passphrase
 
