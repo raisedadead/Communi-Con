@@ -54,7 +54,7 @@ svg { width: 20px; height: 20px; flex: none; }
 .button.primary { min-height: 60px; border-color: transparent; background: var(--lime); font-size: 18px; }
 .button:disabled { border-color: transparent; background: #e6e9df; color: var(--muted); cursor: default; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.jumps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.jumps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .jumps .button { min-height: 48px; padding-inline: 4px; font-variant-numeric: tabular-nums; }
 
 .choices { display: grid; gap: 12px; }
