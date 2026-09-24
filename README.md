@@ -29,11 +29,16 @@ Open <http://localhost:8000/admin>. `pnpm dev` builds the frontend and starts th
 
 ## Deploy
 
-```sh
-pnpm run deploy
-```
+Cloudflare Workers Builds deploys each push to `main`. Connect the repository once in the Cloudflare dashboard (**Workers & Pages** > **Create** > **Import a repository**) with these settings:
 
-Use `pnpm run deploy`, not `pnpm deploy`. `pnpm deploy` is a different pnpm command.
+| Setting | Value |
+| --- | --- |
+| Project name | `communi-con` |
+| Build command | `pnpm run build` |
+| Deploy command | `npx wrangler deploy` |
+| Build variable | `PNPM_VERSION` = `12.4.1` |
+
+The project name must match `name` in `wrangler.jsonc`. The build image installs pnpm 10 by default, and pnpm 10 cannot switch to the pnpm 12 in `packageManager`.
 
 ## Limits
 
