@@ -125,8 +125,8 @@ export class Room extends Server<Env> {
     return [...this.peers('admin'), ...this.peers('stage')];
   }
 
-  private presence(): void {
-    this.send(this.watchers());
+  private presence(joined?: Connection<Peer>): void {
+    this.send(joined ? [joined, ...this.watchers()] : this.watchers());
     this.presenceTimer ??= setTimeout(() => {
       this.presenceTimer = undefined;
       if (this.room) this.send(this.peers('audience'));
@@ -164,8 +164,7 @@ export class Room extends Server<Env> {
     const peer = await this.peer(context.request);
     if (!peer) { connection.close(1008, 'Room access denied'); return; }
     connection.setState(peer);
-    this.send([connection]);
-    this.presence();
+    this.presence(connection);
   }
 
   async onMessage(connection: Connection<Peer>, message: WSMessage): Promise<void> {

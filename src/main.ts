@@ -162,7 +162,7 @@ function updateLive(): void {
   const participants = snapshot?.participants ?? 0;
   for (const element of root.querySelectorAll('[data-count]')) element.textContent = role === 'audience' ? `${participants} here` : `${participants} connected`;
   const field = root.querySelector<HTMLElement>('[data-crowd]');
-  if (field && role === 'audience') syncCrowd(field, participants - 1);
+  if (field && role === 'audience' && connected) syncCrowd(field, participants - 1);
   const results = snapshot?.results;
   if (!results) return;
   for (const opinion of ['keep', 'wrap'] as const) {
@@ -229,8 +229,9 @@ function start(): void {
     state(next): void {
       if (role === 'admin' && !snapshot) localStorage.setItem('cc-room', room);
       const answered = !snapshot || next.version !== snapshot.version || next.roundId !== snapshot.roundId || (pendingVote !== null && next.opinion === pendingVote);
-      snapshot = next;
-      receivedAt = Date.now();
+      const sameRound = snapshot && next.version === snapshot.version && next.roundId === snapshot.roundId;
+      snapshot = sameRound ? { ...next, session: snapshot!.session } : next;
+      if (!sameRound) receivedAt = Date.now();
       if (answered) settle();
       tick();
     },
