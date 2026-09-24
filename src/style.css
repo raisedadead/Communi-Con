@@ -28,7 +28,7 @@
 }
 
 * { box-sizing: border-box; }
-body { min-height: 100dvh; margin: 0; background: radial-gradient(120% 55% at 50% -12%, #2e3d25, transparent 70%) no-repeat, var(--page); }
+body { min-height: 100dvh; margin: 0; background: var(--page) url('/bg.svg') 0 0 / 400px 400px; }
 h1, h2, p { margin: 0; }
 h1, h2 { font-family: var(--display); line-height: 1.15; text-wrap: balance; }
 p { line-height: 1.5; text-wrap: pretty; }
@@ -89,16 +89,17 @@ svg { width: 20px; height: 20px; flex: none; }
 
 .crowd-card { padding: 12px 12px 16px; }
 .crowd-card .quiet { padding-inline: 8px; }
-.crowd { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 12px; background: radial-gradient(circle, var(--track) 1.2px, transparent 1.6px) 0 0 / 22px 22px, #1f2720; }
+.crowd { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 12px; background: #1f2720 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Ccircle cx='11' cy='11' r='1.3' fill='%233a453a'/%3E%3C/svg%3E") 0 0 / 22px 22px; }
 .crowd svg { display: block; }
 .crowd path { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
 .peer { position: absolute; inset-inline-start: var(--x); inset-block-start: var(--y); rotate: var(--r); }
 .peer svg { width: 20px; height: 20px; }
 .you { position: absolute; inset-inline-start: 44%; inset-block-start: 40%; z-index: 1; }
-.you svg { width: 34px; height: 34px; rotate: -10deg; filter: drop-shadow(0 0 10px rgb(211 248 106 / 0.45)); }
+.you svg { width: 34px; height: 34px; rotate: -10deg; }
+.you path { stroke-width: 2.5; }
 .you-tag { position: absolute; inset-inline-start: 26px; inset-block-start: 34px; padding: 2px 8px; border-radius: 6px; background: var(--lime); color: var(--ink); font: 700 13px/1.4 var(--display); letter-spacing: 0.04em; text-transform: uppercase; }
 
-.cue { position: relative; display: grid; place-content: center; justify-items: center; gap: 16px; min-height: 100dvh; padding: 24px; overflow: hidden; background: var(--lime); color: var(--ink); text-align: center; }
+.cue { position: relative; display: grid; place-content: center; justify-items: center; gap: 16px; min-height: 100dvh; padding: 24px; overflow: hidden; background: var(--lime) url('/bg-lime.svg') 0 0 / 400px 400px; color: var(--ink); text-align: center; }
 .cue h1 { position: relative; font-size: clamp(44px, 13vw, 160px); line-height: 1; letter-spacing: -0.04em; }
 .cue p { position: relative; max-width: 22ch; font-size: 20px; }
 .clap { position: relative; font-size: clamp(72px, 22vw, 200px); line-height: 1; }
@@ -128,7 +129,7 @@ svg { width: 20px; height: 20px; flex: none; }
   .rise path { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
 }
 
-@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgb(211 248 106 / 0.6); } 100% { box-shadow: 0 0 0 12px rgb(211 248 106 / 0); } }
+@keyframes pulse { 50% { opacity: 0.3; } }
 @keyframes drift { to { translate: 0 -6px; } }
 @keyframes arrive { from { opacity: 0; scale: 0.25; } }
 @keyframes clap { to { scale: 1.12; rotate: -6deg; } }
