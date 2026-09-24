@@ -1,6 +1,6 @@
 import { routePartykitRequest, Server } from 'partyserver';
 import type { Connection, ConnectionContext, WSMessage } from 'partyserver';
-import { ballotOpen, initialSession, transition } from '../src/session';
+import { ballotOpen, initialSession, transition, validTiming, votingWindow } from '../src/session';
 import type { Action, Opinion, Session } from '../src/session';
 import type { Reactions, Results, Role, RoomSnapshot } from '../src/protocol';
 
@@ -78,7 +78,11 @@ function parseAction(value: unknown): Action | null {
   if (!value || typeof value !== 'object') return null;
   const action = value as Record<string, unknown>;
   if (action.type === 'start') return typeof action.speaker === 'string' ? { type: 'start', speaker: cleanName(action.speaker) } : { type: 'start' };
-  if (action.type === 'reset' || action.type === 'pause' || action.type === 'applause') return { type: action.type };
+  if (action.type === 'reset' || action.type === 'pause' || action.type === 'applause' || action.type === 'open') return { type: action.type };
+  if (action.type === 'timing') {
+    const { length, opensAt, lasts } = action;
+    return typeof length === 'number' && typeof opensAt === 'number' && typeof lasts === 'number' && validTiming({ length, opensAt, lasts }) ? { type: 'timing', length, opensAt, lasts } : null;
+  }
   if (action.type === 'nudge' && (action.seconds === 60 || action.seconds === -60)) return { type: 'nudge', seconds: action.seconds };
   if (action.type === 'speaker' && typeof action.name === 'string') return { type: 'speaker', name: cleanName(action.name) };
   if (action.type === 'vote' && (action.opinion === 'keep' || action.opinion === 'wrap')) return { type: 'vote', opinion: action.opinion };
@@ -94,6 +98,7 @@ export class Room extends Server<Env> {
 
   async onStart(): Promise<void> {
     this.room = await this.ctx.storage.get<RoomRecord>('room');
+    if (this.room) this.room.session = { ...initialSession(), ...this.room.session };
   }
 
   private current(): Session {
@@ -168,8 +173,9 @@ export class Room extends Server<Env> {
 
   private async schedule(): Promise<void> {
     const session = this.current();
-    const boundary = [300, 480, 600].find(seconds => seconds > session.elapsed);
-    if (session.mode === 'talk' && !session.paused && !session.applause && boundary) {
+    const { from, to } = votingWindow(session);
+    const boundary = Math.min(...[from, to, session.length].filter(seconds => seconds > session.elapsed));
+    if (session.mode === 'talk' && !session.paused && !session.applause && Number.isFinite(boundary)) {
       await this.ctx.storage.setAlarm(Date.now() + (boundary - session.elapsed) * 1000);
     } else await this.ctx.storage.deleteAlarm();
   }

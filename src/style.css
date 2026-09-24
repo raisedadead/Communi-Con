@@ -75,6 +75,11 @@ svg { width: 20px; height: 20px; flex: none; }
 .input { width: 100%; min-height: 52px; padding: 12px 14px; border: 1px solid var(--edge); border-radius: 14px; background: var(--page); color: var(--text); font: inherit; font-size: 17px; font-weight: 400; }
 .input[aria-invalid="true"] { border-color: var(--warn); }
 .field-error { color: var(--warn); }
+.timing-row { display: grid; grid-template-columns: minmax(0, 1fr) 84px auto; align-items: center; gap: 10px; font-weight: 600; }
+.timing-row .input { text-align: end; font-variant-numeric: tabular-nums; }
+.ballot-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; }
+.closes { color: var(--lime); font-weight: 600; font-variant-numeric: tabular-nums; }
+.closes-line { color: var(--lime); font-weight: 600; font-variant-numeric: tabular-nums; }
 .inline-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
 .inline-form label { grid-column: 1 / -1; font-weight: 600; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

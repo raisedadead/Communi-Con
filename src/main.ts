@@ -2,8 +2,8 @@ import QRCode from 'qrcode';
 import { connectRoom } from './connection';
 import { crowd, cursor, syncCrowd } from './crowd';
 import type { RoomConnection } from './connection';
-import { ballotOpen, phaseOf, timeLabel, transition } from './session';
-import type { Action, Opinion, Phase, Session } from './session';
+import { ballotOpen, phaseOf, timeLabel, transition, validTiming, votingWindow } from './session';
+import type { Action, Opinion, Phase, Session, Timing } from './session';
 import type { Role, RoomSnapshot } from './protocol';
 import './style.css';
 
@@ -82,8 +82,14 @@ function cue(text: string): string {
   return `<main class="cue"><div class="burst" aria-hidden="true">${rising}</div><span class="clap" aria-hidden="true">👏</span><h1 data-enter="cue">Round of applause</h1>${text ? `<p data-enter="cue-${escape(text)}" style="--i:1">${text}</p>` : ''}</main>`;
 }
 
-function clock(): string {
-  return `<div class="clock"><span class="time" role="timer" data-clock></span><span class="of">of 10:00</span></div><div class="track" aria-hidden="true"><div class="fill" data-progress></div><span class="mark" style="--at:50%"></span><span class="mark" style="--at:80%"></span></div>`;
+function clock(current: Session): string {
+  const { from, to } = votingWindow(current);
+  const marks = [from, to].filter(seconds => seconds > 0 && seconds < current.length).map(seconds => `<span class="mark" style="--at:${(seconds / current.length * 100).toFixed(2)}%"></span>`).join('');
+  return `<div class="clock"><span class="time" role="timer" data-clock></span><span class="of">of ${timeLabel(current.length)}</span></div><div class="track" aria-hidden="true"><div class="fill" data-progress></div>${marks}</div>`;
+}
+
+function minutes(seconds: number): string {
+  return `${Math.round(seconds / 60 * 100) / 100}`;
 }
 
 function button(action: string, label: string, options: { primary?: boolean; disabled?: boolean } = {}): string {
@@ -113,27 +119,29 @@ function audience(current: Session): string {
     const title = name
       ? `<p><span class="live next" data-enter="next">Up next</span></p><h1 class="display" data-enter="next-${escape(name)}" style="--i:1">${escape(name)}</h1>`
       : '<h1 class="display" data-enter="floor">The floor is yours.</h1>';
-    return `${header()}<main class="screen"><section class="card crowd-card">${crowd(0, true)}<p class="quiet">Each cursor is one person in the room. Yours is lime.</p></section><section class="intro">${title}<p>Keep this page open. From 05:00 into each talk, you vote: keep going, or wrap it up.</p><p class="quiet">Your vote is anonymous. Each first vote sends a 👍 or 👎 to the screens. Only the co-chairs see the totals.</p></section></main>`;
+    return `${header()}<main class="screen"><section class="card crowd-card">${crowd(0, true)}<p class="quiet">Each cursor is one person in the room. Yours is lime.</p></section><section class="intro">${title}<p>Keep this page open. During each talk, the co-chairs open the vote: keep going, or wrap it up.</p><p class="quiet">Your vote is anonymous. Each first vote sends a 👍 or 👎 to the screens. Only the co-chairs see the totals.</p></section></main>`;
   }
   if (phase === 'ended') {
     return `${header()}<main class="screen"><section class="intro"><h1 class="display" data-enter="ended">Time is up.</h1><p data-enter="ended-text" style="--i:1">Voting is closed. Thank you for listening.</p></section></main>`;
   }
   const open = ballotOpen(current);
   const opinion = pendingVote || snapshot?.opinion || null;
-  const label = current.paused ? 'Paused' : open ? 'Voting open' : 'Listening';
+  const label = current.paused ? 'Paused' : open ? 'Voting open' : phase === 'closed' ? 'Voting closed' : 'Listening';
   const mood = current.paused ? 'paused' : open ? 'open' : 'live';
-  const hint = current.paused ? 'Voting continues when the talk resumes.' : pendingVote ? 'Sending your vote…' : opinion ? 'Vote received. You can change it while voting is open.' : 'Only the co-chairs see the totals.';
+  const closed = phase === 'closed';
+  const hint = closed ? `Voting is closed.${opinion ? ' Thank you for your vote.' : ''}` : current.paused ? 'Voting continues when the talk resumes.' : pendingVote ? 'Sending your vote…' : opinion ? 'Vote received. You can change it while voting is open.' : 'Only the co-chairs see the totals.';
   const ballot = phase === 'listening'
-    ? '<p>Voting opens at 05:00.</p>'
-    : `<h2>Your verdict</h2><div class="choices">${choice('keep', '👍', 'Keep going', opinion, open)}${choice('wrap', '👎', 'Wrap it up', opinion, open)}</div><p class="quiet">${hint}</p>`;
-  return `${header()}<main class="screen"><section class="card">${onAir(name)}<h1 class="state" data-mood="${mood}" data-enter="state-${label}"><span class="pulse" aria-hidden="true"></span>${label}</h1>${clock()}</section><section class="card">${ballot}</section></main>`;
+    ? `<p>${current.openedAt === null ? `Voting opens at ${timeLabel(current.opensAt)}.` : 'Voting opens soon.'}</p>`
+    : `<div class="ballot-head"><h2>Your verdict</h2>${open ? '<span class="closes" data-closes></span>' : ''}</div><div class="choices">${choice('keep', '👍', 'Keep going', opinion, open)}${choice('wrap', '👎', 'Wrap it up', opinion, open)}</div><p class="quiet">${hint}</p>`;
+  return `${header()}<main class="screen"><section class="card">${onAir(name)}<h1 class="state" data-mood="${mood}" data-enter="state-${label}"><span class="pulse" aria-hidden="true"></span>${label}</h1>${clock(current)}</section><section class="card">${ballot}</section></main>`;
 }
 
 function stage(current: Session): string {
   const phase = phaseOf(current);
   const name = snapshot?.speaker || '';
   if (phase === 'applause') return cue(name ? `Clap for ${escape(name)}.` : '');
-  const line = current.paused ? 'Paused' : { lobby: name ? 'Scan to join and vote.' : 'Scan to join Communi-Con', listening: 'Scan to join. Voting opens at 05:00.', voting: 'Voting is open. Scan to vote.', eligible: 'Voting is open. Scan to vote.', ended: 'Time is up' }[phase];
+  const listening = current.openedAt === null ? `Scan to join. Voting opens at ${timeLabel(current.opensAt)}.` : 'Scan to join.';
+  const line = current.paused ? 'Paused' : { lobby: name ? 'Scan to join and vote.' : 'Scan to join Communi-Con', listening, voting: 'Voting is open. Scan to vote.', closed: 'Voting is closed.', ended: 'Time is up' }[phase];
   const tag = phase === 'lobby' ? '<span class="live next">Up next</span>' : '<span class="live">On air</span>';
   const who = name ? `<p data-enter="tag-${phase === 'lobby'}">${tag}</p><p class="stage-name" data-enter="stage-${escape(name)}" style="--i:1">${escape(name)}</p>` : '';
   const time = phase === 'lobby' ? '' : '<p class="stage-time" role="timer" data-clock></p>';
@@ -152,24 +160,30 @@ function admin(current: Session): string {
   const phase = phaseOf(current);
   const name = snapshot?.speaker || '';
   const running = current.mode === 'talk' && phase !== 'applause' && phase !== 'ended';
-  const canCue = phase === 'eligible' || phase === 'ended';
-  const label = current.paused ? 'Paused' : { lobby: 'Between talks', listening: 'Listening', voting: 'Voting open', eligible: 'Applause allowed', applause: 'Applause on screen', ended: 'Time is up' }[phase];
+  const canCue = phase !== 'listening';
+  const label = current.paused ? 'Paused' : { lobby: 'Between talks', listening: 'Listening', voting: 'Voting open', closed: 'Voting closed', applause: 'Applause on screen', ended: 'Time is up' }[phase];
   const title = `<h1 class="state" data-mood="${current.paused ? 'paused' : phase === 'lobby' ? 'idle' : 'live'}"><span class="pulse" aria-hidden="true"></span>${label}</h1>`;
   if (phase === 'lobby') {
-    return `${header('Co-chair')}<main class="screen"><section class="card">${title}${speakerForm('Next speaker')}${button('start', 'Start talk', { primary: true })}<p class="quiet">Tap Start talk when the speaker starts. Voting opens at 05:00.</p></section>${shareCard()}</main>`;
+    return `${header('Co-chair')}<main class="screen"><section class="card">${title}${speakerForm('Next speaker')}${button('start', 'Start talk', { primary: true })}<p class="quiet">Tap Start talk when the speaker starts. Voting opens at ${timeLabel(current.opensAt)} and lasts ${minutes(current.lasts)} min.</p></section>${timingCard(current)}${shareCard()}</main>`;
   }
   let controls: string;
   if (phase === 'applause') controls = `${button('reset', 'Next talk', { primary: true })}<p class="quiet">This clears the votes and the speaker name.</p>`;
   else {
-    const hint = canCue ? 'Every phone and the stage screen show the cue.' : 'Applause opens at 08:00. Cue it earlier only if the speaker has finished.';
+    const hint = canCue ? 'Every phone and the stage screen show the cue.' : 'Cue applause before voting only if the speaker has finished.';
     const secondary = running ? `<div class="row">${button('pause', current.paused ? 'Resume' : 'Pause')}${button('reset', 'End talk')}</div>` : `<div class="row">${button('reset', 'Next talk')}</div>`;
-    controls = `${button('applause', 'Cue applause', { primary: canCue })}<p class="quiet">${hint}</p>${secondary}`;
+    const vote = phase === 'listening' || phase === 'closed' ? `${button('open', phase === 'closed' ? 'Open voting again' : 'Open voting now')}<p class="quiet">Voting stays open for ${minutes(current.lasts)} min.</p>` : phase === 'voting' ? '<p class="closes-line" data-closes></p>' : '';
+    controls = `${vote}${button('applause', 'Cue applause', { primary: canCue })}<p class="quiet">${hint}</p>${secondary}`;
   }
   const adjust = phase === 'applause' ? '' : `<div class="adjust" role="group" aria-labelledby="adjust-title"><span class="quiet" id="adjust-title">Adjust the clock</span>${nudgeButton(-60, '−1 min')}${nudgeButton(60, '+1 min')}</div>`;
   const onAirLine = name ? `<p class="on-air-line"><span class="live">On air</span>${escape(name)}</p>` : '';
   const votes = `<section class="card" aria-labelledby="votes-title"><h2 id="votes-title">Votes</h2>${result('keep', 'Keep going')}${result('wrap', 'Wrap it up')}<p class="quiet" data-total></p><p class="quiet">Only co-chairs see these numbers.</p></section>`;
   const speaker = `<section class="card" aria-labelledby="speaker-title"><h2 id="speaker-title">Speaker</h2>${speakerForm('Speaker name')}</section>`;
-  return `${header('Co-chair')}<main class="screen"><section class="card">${onAirLine}${title}${clock()}${adjust}${controls}</section>${votes}${speaker}${shareCard()}</main>`;
+  return `${header('Co-chair')}<main class="screen"><section class="card">${onAirLine}${title}${clock(current)}${adjust}${controls}</section>${votes}${speaker}${timingCard(current)}${shareCard()}</main>`;
+}
+
+function timingCard(current: Session): string {
+  const field = (key: keyof Timing, label: string): string => `<label class="timing-row"><span>${label}</span><input class="input" name="${key}" inputmode="decimal" autocomplete="off" data-key="${key}" value="${minutes(current[key])}"><span class="quiet">min</span></label>`;
+  return `<section class="card" aria-labelledby="timing-title"><h2 id="timing-title">Timing</h2><form class="form" data-timing>${field('length', 'Talk length')}${field('opensAt', 'Voting opens at')}${field('lasts', 'Voting lasts')}<button class="button small" data-key="save-timing"${pending || !connected ? ' disabled' : ''}>Save timing</button></form><p class="quiet">The timing stays for the next talks.</p></section>`;
 }
 
 function result(opinion: Opinion, label: string): string {
@@ -204,7 +218,9 @@ function updateLive(): void {
   if (!session) return;
   const time = timeLabel(session.elapsed);
   for (const element of root.querySelectorAll('[data-clock]')) if (element.textContent !== time) element.textContent = time;
-  for (const element of root.querySelectorAll<HTMLElement>('[data-progress]')) element.style.width = `${session.elapsed / 6}%`;
+  for (const element of root.querySelectorAll<HTMLElement>('[data-progress]')) element.style.width = `${session.elapsed / session.length * 100}%`;
+  const closes = `Closes in ${timeLabel(Math.max(0, votingWindow(session).to - session.elapsed))}`;
+  for (const element of root.querySelectorAll('[data-closes]')) if (element.textContent !== closes) element.textContent = closes;
   const participants = snapshot?.participants ?? 0;
   const count = String(participants);
   for (const element of root.querySelectorAll<HTMLElement>('[data-count]')) {
@@ -274,15 +290,17 @@ function render(): void {
   const html = view() + (notice ? `<p class="notice" data-enter="notice-${escape(notice)}">${escape(notice)}</p>` : '');
   if (html !== shown) {
     const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const drafts = [...root.querySelectorAll<HTMLInputElement>('input[data-key]')].filter(input => input.value !== input.defaultValue);
     root.innerHTML = html;
     shown = html;
     animateEntries();
+    for (const draft of drafts) {
+      const input = root.querySelector<HTMLInputElement>(`input[data-key="${draft.dataset.key}"]`);
+      if (input && (input.defaultValue === draft.defaultValue || draft === active)) input.value = draft.value;
+    }
     const restored = active?.dataset.key ? root.querySelector<HTMLElement>(`[data-key="${active.dataset.key}"]`) : null;
     restored?.focus();
-    if (active instanceof HTMLInputElement && restored instanceof HTMLInputElement) {
-      restored.value = active.value;
-      restored.setSelectionRange(active.selectionStart, active.selectionEnd);
-    }
+    if (active instanceof HTMLInputElement && restored instanceof HTMLInputElement) restored.setSelectionRange(active.selectionStart, active.selectionEnd);
   }
   updateLive();
 }
@@ -309,9 +327,8 @@ function tick(): void {
   const phase = phaseOf(session);
   if (lastPhase && phase !== lastPhase && !ballotOpen(session)) fx.replaceChildren();
   if (role === 'audience' && lastPhase && phase !== lastPhase) {
-    announce({ lobby: 'The talk ended. Waiting for the next talk.', listening: 'The talk started.', voting: 'Voting is open.', eligible: 'Voting is open.', applause: 'Round of applause. Clap for the speaker.', ended: 'Time is up. Voting is closed.' }[phase]);
-    const voting = (value: Phase): boolean => value === 'voting' || value === 'eligible';
-    if (voting(phase) && !voting(lastPhase)) navigator.vibrate?.(200);
+    announce({ lobby: 'The talk ended. Waiting for the next talk.', listening: 'The talk started.', voting: 'Voting is open.', closed: 'Voting is closed.', applause: 'Round of applause. Clap for the speaker.', ended: 'Time is up. Voting is closed.' }[phase]);
+    if (phase === 'voting') navigator.vibrate?.(200);
     if (phase === 'applause') navigator.vibrate?.([120, 60, 120, 60, 240]);
   }
   lastPhase = phase;
@@ -397,9 +414,9 @@ root.addEventListener('click', event => {
   if (!target || target.matches(':disabled')) return;
   const { action, vote, nudge, share: kind } = target.dataset;
   if (action === 'reset' && session && phaseOf(session) !== 'applause' && phaseOf(session) !== 'ended' && !confirm('End this talk? This clears the votes and the speaker name.')) return;
-  if (action === 'applause' && session && session.elapsed < 480 && !confirm('Cue applause before 08:00? Do this only if the speaker has finished.')) return;
+  if (action === 'applause' && session && phaseOf(session) === 'listening' && !confirm('Cue applause before voting? Do this only if the speaker has finished.')) return;
   if (action === 'start') act({ type: 'start', speaker: root.querySelector<HTMLInputElement>('input[data-key="speaker"]')?.value ?? '' });
-  if (action === 'reset' || action === 'pause' || action === 'applause') act({ type: action });
+  if (action === 'reset' || action === 'pause' || action === 'applause' || action === 'open') act({ type: action });
   if (vote === 'keep' || vote === 'wrap') {
     const box = target.getBoundingClientRect();
     if (act({ type: 'vote', opinion: vote })) burst(box);
@@ -414,6 +431,13 @@ root.addEventListener('submit', event => {
   if (!(event.target instanceof HTMLFormElement)) return;
   if (event.target.hasAttribute('data-create') && !pending) void create(String(new FormData(event.target).get('passphrase')));
   if (event.target.hasAttribute('data-speaker')) act({ type: 'speaker', name: String(new FormData(event.target).get('speaker')) });
+  if (event.target.hasAttribute('data-timing')) {
+    const form = new FormData(event.target);
+    const seconds = (key: keyof Timing): number => Math.round(Number(String(form.get(key)).replace(',', '.')) * 60);
+    const timing = { length: seconds('length'), opensAt: seconds('opensAt'), lasts: seconds('lasts') };
+    if (validTiming(timing)) act({ type: 'timing', ...timing });
+    else flash('Check the timing. The talk lasts 1 to 120 min, voting lasts at least 0.25 min, and voting opens before the talk ends.');
+  }
 });
 
 if (role === 'admin') {
