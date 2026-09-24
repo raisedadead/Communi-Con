@@ -88,11 +88,11 @@ function audience(current: Session): string {
   const open = ballotOpen(current);
   const opinion = pendingVote || snapshot?.opinion || null;
   const label = current.paused ? 'Paused' : open ? 'Voting open' : 'Talk in progress';
-  const hint = current.paused ? 'Voting continues when the talk resumes.' : pendingVote ? 'Sending your vote…' : opinion ? 'Vote received. You can change it until 10:00.' : 'Only the co-chairs see the count.';
+  const hint = current.paused ? 'Voting continues when the talk resumes.' : pendingVote ? 'Sending your vote…' : opinion ? 'Vote received. You can change it while voting is open.' : 'Only the co-chairs see the count.';
   const ballot = phase === 'listening'
     ? '<p>Voting opens at 05:00.</p>'
     : `<h2>How is this talk going?</h2><div class="choices">${choice('keep', 'Keep going', opinion, open)}${choice('wrap', 'Wrap it up', opinion, open)}</div><p class="quiet">${hint}</p>`;
-  return `${header('Communi-Con')}<main class="screen"><section class="card"><p class="label">${label}</p>${clock()}</section><section class="card">${ballot}</section></main>`;
+  return `${header('Communi-Con')}<main class="screen"><section class="card"><h1 class="state">${label}</h1>${clock()}</section><section class="card">${ballot}</section></main>`;
 }
 
 function stage(current: Session): string {
@@ -100,7 +100,7 @@ function stage(current: Session): string {
   if (phase === 'applause') return '<main class="cue"><h1>Round of applause</h1></main>';
   const line = current.paused ? 'Paused' : { lobby: 'Scan to join Communi-Con', listening: 'Scan to join. Voting opens at 05:00.', voting: 'Voting is open. Scan to vote.', eligible: 'Voting is open. Scan to vote.', ended: 'Time is up' }[phase];
   const time = phase === 'lobby' ? '' : '<p class="stage-time" role="timer" data-clock></p>';
-  return `<main class="stage"><div class="qr" role="img" aria-label="QR code for ${escape(links.audience())}">${qr}</div><div class="stage-text"><p class="stage-line">${line}</p>${time}<p class="stage-host">${escape(location.host)}</p><p class="stage-host" data-count></p></div></main>`;
+  return `<main class="stage"><div class="qr" role="img" aria-label="QR code for ${escape(links.audience())}">${qr}</div><div class="stage-text"><h1 class="stage-line">${line}</h1>${time}<p class="stage-host">${escape(location.host)}</p><p class="stage-host" data-count></p></div></main>`;
 }
 
 function admin(current: Session): string {
@@ -119,11 +119,11 @@ function admin(current: Session): string {
   const votes = phase === 'lobby' ? '' : `<section class="card" aria-labelledby="votes-title"><h2 id="votes-title">Votes</h2>${result('keep', 'Keep going')}${result('wrap', 'Wrap it up')}<p class="quiet" data-total></p><p class="quiet">Only co-chairs see these numbers.</p></section>`;
   const jumps = phase === 'lobby' ? '' : `<section class="card" aria-labelledby="clock-title"><h2 id="clock-title">Set the clock</h2><p class="quiet">Use this to rehearse, or to correct a late start.</p><div class="jumps">${[300, 480, 600].map(seconds => `<button class="button" data-seek="${seconds}" data-key="seek-${seconds}"${pending || !connected ? ' disabled' : ''}>${timeLabel(seconds)}</button>`).join('')}</div></section>`;
   const share = `<section class="card" aria-labelledby="share-title"><h2 id="share-title">Share</h2><a class="button" href="${escape(links.stage())}" target="_blank" rel="noopener">Open stage screen${icon('external')}</a><button class="button" data-share="stage" data-key="share-stage">Share stage link</button><button class="button" data-share="audience" data-key="share-audience">Share audience link</button><button class="button" data-share="admin" data-key="share-admin">Share co-chair link</button><p class="quiet">Anyone with the co-chair link can control the talk and see the votes.</p></section>`;
-  return `${header('Co-chair')}<main class="screen"><section class="card"><p class="label">${label}</p>${clock()}${controls}</section>${votes}${jumps}${share}</main>`;
+  return `${header('Co-chair')}<main class="screen"><section class="card"><h1 class="state">${label}</h1>${clock()}${controls}</section>${votes}${jumps}${share}</main>`;
 }
 
 function result(opinion: Opinion, label: string): string {
-  return `<div class="result"><div class="result-head"><span>${label}</span><strong data-${opinion}></strong></div><div class="track" aria-hidden="true"><div class="fill ${opinion}" data-${opinion}-bar></div></div></div>`;
+  return `<div class="result"><div class="result-head"><span>${label}</span><strong data-${opinion}></strong></div><div class="track" aria-hidden="true"><div class="fill" data-${opinion}-bar></div></div></div>`;
 }
 
 function setup(): string {
@@ -284,7 +284,7 @@ if (role === 'admin') {
   if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   key = room ? localStorage.getItem(`cc-key:${room}`) || '' : '';
 }
-document.body.dataset.role = role;
+document.title = { audience: 'Communi-Con', stage: 'Stage · Communi-Con', admin: 'Co-chair · Communi-Con' }[role];
 setInterval(tick, 250);
 if (room && (role !== 'admin' || key)) start();
 else render();
