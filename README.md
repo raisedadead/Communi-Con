@@ -1,6 +1,6 @@
 # Communi-Con
 
-Anonymous audience votes for the Communi-Con talks at IndiaFOSS 2026. The audience votes on phones. The co-chairs see the count and cue the applause.
+Anonymous audience votes for community talks. The audience votes on phones. The co-chairs see the count and cue the applause.
 
 ## How it works
 
@@ -25,7 +25,15 @@ pnpm install
 pnpm dev
 ```
 
-Open <http://localhost:8000/admin>. `pnpm dev` builds the frontend and starts the Worker and the Durable Object on your computer.
+Open <http://localhost:8000/admin>. `pnpm dev` starts the Worker and the Durable Object on your computer, and rebuilds the frontend when a file changes.
+
+To test on phones, start a tunnel in a second terminal:
+
+```sh
+cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8000
+```
+
+Do not add `--http-host-header localhost:8000`. It exposes the local Wrangler explorer through the tunnel.
 
 ## Deploy
 

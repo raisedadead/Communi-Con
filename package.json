@@ -7,7 +7,7 @@
   "scripts": {
     "check": "tsc --noEmit && tsc --noEmit -p tsconfig.worker.json",
     "build": "pnpm check && vite build",
-    "dev": "pnpm build && wrangler dev --port 8000"
+    "dev": "pnpm build && (vite build --watch --logLevel warn & wrangler dev --port ${PORT:-8000})"
   },
   "dependencies": {
     "partyserver": "0.5.10",
