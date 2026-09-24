@@ -113,7 +113,7 @@ function audience(current: Session): string {
     const title = name
       ? `<p><span class="live next" data-enter="next">Up next</span></p><h1 class="display" data-enter="next-${escape(name)}" style="--i:1">${escape(name)}</h1>`
       : '<h1 class="display" data-enter="floor">The floor is yours.</h1>';
-    return `${header()}<main class="screen"><section class="card crowd-card">${crowd(0, true)}<p class="quiet">Each cursor is one person in the room. Yours is lime.</p></section><section class="intro">${title}<p>Keep this page open. From 05:00 into each talk, you vote: keep going, or wrap it up.</p><p class="quiet">Your vote is anonymous. Only the co-chairs see the count.</p></section></main>`;
+    return `${header()}<main class="screen"><section class="card crowd-card">${crowd(0, true)}<p class="quiet">Each cursor is one person in the room. Yours is lime.</p></section><section class="intro">${title}<p>Keep this page open. From 05:00 into each talk, you vote: keep going, or wrap it up.</p><p class="quiet">Your vote is anonymous. Each first vote sends a 👍 or 👎 to the screens. Only the co-chairs see the totals.</p></section></main>`;
   }
   if (phase === 'ended') {
     return `${header()}<main class="screen"><section class="intro"><h1 class="display" data-enter="ended">Time is up.</h1><p data-enter="ended-text" style="--i:1">Voting is closed. Thank you for listening.</p></section></main>`;
@@ -122,7 +122,7 @@ function audience(current: Session): string {
   const opinion = pendingVote || snapshot?.opinion || null;
   const label = current.paused ? 'Paused' : open ? 'Voting open' : 'Listening';
   const mood = current.paused ? 'paused' : open ? 'open' : 'live';
-  const hint = current.paused ? 'Voting continues when the talk resumes.' : pendingVote ? 'Sending your vote…' : opinion ? 'Vote received. You can change it while voting is open.' : 'Only the co-chairs see the count.';
+  const hint = current.paused ? 'Voting continues when the talk resumes.' : pendingVote ? 'Sending your vote…' : opinion ? 'Vote received. You can change it while voting is open.' : 'Only the co-chairs see the totals.';
   const ballot = phase === 'listening'
     ? '<p>Voting opens at 05:00.</p>'
     : `<h2>Your verdict</h2><div class="choices">${choice('keep', '👍', 'Keep going', opinion, open)}${choice('wrap', '👎', 'Wrap it up', opinion, open)}</div><p class="quiet">${hint}</p>`;
@@ -246,7 +246,7 @@ function animateEntries(): void {
 }
 
 function spawn(className: string, style: string, text = ''): void {
-  if (!motion.matches || fx.childElementCount > 60) return;
+  if (!motion.matches || fx.childElementCount >= 60) return;
   const node = document.createElement('span');
   node.className = className;
   node.setAttribute('style', style);
@@ -274,17 +274,15 @@ function render(): void {
   const html = view() + (notice ? `<p class="notice" data-enter="notice-${escape(notice)}">${escape(notice)}</p>` : '');
   if (html !== shown) {
     const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const drafts = [...root.querySelectorAll<HTMLInputElement>('input[data-key]')].filter(input => input.value !== input.defaultValue).map(input => [input.dataset.key, input.value] as const);
     root.innerHTML = html;
     shown = html;
     animateEntries();
-    for (const [draft, value] of drafts) {
-      const input = root.querySelector<HTMLInputElement>(`input[data-key="${draft}"]`);
-      if (input) input.value = value;
-    }
     const restored = active?.dataset.key ? root.querySelector<HTMLElement>(`[data-key="${active.dataset.key}"]`) : null;
     restored?.focus();
-    if (active instanceof HTMLInputElement && restored instanceof HTMLInputElement) restored.setSelectionRange(active.selectionStart, active.selectionEnd);
+    if (active instanceof HTMLInputElement && restored instanceof HTMLInputElement) {
+      restored.value = active.value;
+      restored.setSelectionRange(active.selectionStart, active.selectionEnd);
+    }
   }
   updateLive();
 }

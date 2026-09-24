@@ -45,7 +45,8 @@ export function transition(session: Session, action: Action): Session {
   }
   if (action.type === 'applause' && session.mode === 'talk' && !session.applause) return { ...session, paused: false, applause: true };
   if (action.type === 'nudge' && session.mode === 'talk' && !session.applause) {
-    return { ...session, elapsed: Math.min(600, Math.max(0, session.elapsed + action.seconds)) };
+    const elapsed = Math.min(600, Math.max(0, session.elapsed + action.seconds));
+    return elapsed === session.elapsed ? session : { ...session, elapsed };
   }
   return session;
 }

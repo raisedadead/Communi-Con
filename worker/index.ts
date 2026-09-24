@@ -71,7 +71,7 @@ function sameOrigin(request: Request): boolean {
 }
 
 function cleanName(name: string): string {
-  return [...name.replace(/[\p{Cc}\u202A-\u202E\u2066-\u2069]/gu, '').replace(/\s+/g, ' ').trim()].slice(0, 60).join('').trim();
+  return [...name.replace(/\s+/g, ' ').replace(/[\p{Cc}\p{Cf}]/gu, '').trim()].slice(0, 60).join('').trim();
 }
 
 function parseAction(value: unknown): Action | null {
@@ -222,11 +222,11 @@ export class Room extends Server<Env> {
     const current = this.current();
     if (action.type === 'vote') {
       if (!ballotOpen(current)) { fail('Voting is closed.'); return; }
-      const changed = this.room.votes[peer.participant!] !== action.opinion;
+      const first = this.room.votes[peer.participant!] === undefined;
       this.room.votes[peer.participant!] = action.opinion;
       await this.ctx.storage.put('room', this.room);
       this.send([connection, ...this.peers('admin')]);
-      if (changed) this.react(action.opinion);
+      if (first) this.react(action.opinion);
       return;
     }
     if (action.type === 'speaker') {
@@ -240,7 +240,7 @@ export class Room extends Server<Env> {
     if (next === current) { fail('That control is not available now.'); return; }
     this.room.session = next;
     this.room.clockAt = Date.now();
-    if (action.type === 'start' || action.type === 'reset' || (action.type === 'nudge' && next.elapsed < 300)) {
+    if (action.type === 'start' || action.type === 'reset') {
       this.room.roundId = crypto.randomUUID();
       this.room.votes = {};
     }

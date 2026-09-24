@@ -7,7 +7,7 @@ Anonymous audience votes for community talks. The audience votes on phones. The 
 - Each talk has a 10-minute clock.
 - From 05:00, each phone can vote **Keep going** or **Wrap it up**. A phone can change its vote until 10:00.
 - Only the co-chairs see the count. The phones and the stage screen do not show it.
-- Each new vote sends a 👍 or 👎 reaction to the phones and the stage screen. A reaction shows the direction of a vote, not the count.
+- The first vote from each phone sends a 👍 or 👎 reaction to the phones and the stage screen. A person who counts the reactions can estimate the votes. Only the co-chairs see the totals.
 - From 08:00, a co-chair can cue the applause. All phones and the stage screen show the cue. If the speaker finishes early, a co-chair can cue it before 08:00.
 
 ## Run the event
