@@ -1,11 +1,6 @@
-import type { Session } from './session';
+import type { Opinion, Session } from './session';
 
 export type Role = 'audience' | 'stage' | 'admin';
-
-export interface Member {
-  id: string;
-  joined: boolean;
-}
 
 export interface Results {
   keep: number;
@@ -15,14 +10,11 @@ export interface Results {
 
 export interface RoomSnapshot {
   type: 'state';
-  room: string;
   roundId: string;
   version: number;
   session: Session;
-  participantId: string | null;
+  opinion: Opinion | null;
   participants: number;
-  members: Member[];
-  joinUrl: string;
   results?: Results;
 }
 
