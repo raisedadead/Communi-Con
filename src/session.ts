@@ -57,7 +57,10 @@ export function transition(session: Session, action: Action): Session {
   const idle = { elapsed: 0, paused: false, applause: false, openedAt: null };
   if (action.type === 'start') return { ...session, ...idle, mode: 'talk' };
   if (action.type === 'reset') return { ...session, ...idle, mode: 'lobby' };
-  if (action.type === 'timing') return { ...session, length: action.length, opensAt: action.opensAt, lasts: action.lasts, elapsed: Math.min(session.elapsed, action.length) };
+  if (action.type === 'timing') {
+    const openedAt = action.opensAt === session.opensAt && session.openedAt !== null && session.openedAt < action.length ? session.openedAt : null;
+    return { ...session, length: action.length, opensAt: action.opensAt, lasts: action.lasts, openedAt, elapsed: Math.min(session.elapsed, action.length) };
+  }
   if (session.mode !== 'talk' || session.applause) return session;
   const phase = phaseOf(session);
   if (action.type === 'pause' && (session.paused || phase !== 'ended')) return { ...session, paused: !session.paused };

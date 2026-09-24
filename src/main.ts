@@ -164,14 +164,14 @@ function admin(current: Session): string {
   const label = current.paused ? 'Paused' : { lobby: 'Between talks', listening: 'Listening', voting: 'Voting open', closed: 'Voting closed', applause: 'Applause on screen', ended: 'Time is up' }[phase];
   const title = `<h1 class="state" data-mood="${current.paused ? 'paused' : phase === 'lobby' ? 'idle' : 'live'}"><span class="pulse" aria-hidden="true"></span>${label}</h1>`;
   if (phase === 'lobby') {
-    return `${header('Co-chair')}<main class="screen"><section class="card">${title}${speakerForm('Next speaker')}${button('start', 'Start talk', { primary: true })}<p class="quiet">Tap Start talk when the speaker starts. Voting opens at ${timeLabel(current.opensAt)} and lasts ${minutes(current.lasts)} min.</p></section>${timingCard(current)}${shareCard()}</main>`;
+    return `${header('Co-chair')}<main class="screen"><section class="card">${title}${speakerForm('Next speaker')}${button('start', 'Start talk', { primary: true })}<p class="quiet">Tap Start talk when the speaker starts. Voting opens at ${timeLabel(current.opensAt)} and lasts ${minutes(Math.min(current.lasts, current.length - current.opensAt))} min.</p></section>${timingCard(current)}${shareCard()}</main>`;
   }
   let controls: string;
   if (phase === 'applause') controls = `${button('reset', 'Next talk', { primary: true })}<p class="quiet">This clears the votes and the speaker name.</p>`;
   else {
     const hint = canCue ? 'Every phone and the stage screen show the cue.' : 'Cue applause before voting only if the speaker has finished.';
     const secondary = running ? `<div class="row">${button('pause', current.paused ? 'Resume' : 'Pause')}${button('reset', 'End talk')}</div>` : `<div class="row">${button('reset', 'Next talk')}</div>`;
-    const vote = phase === 'listening' || phase === 'closed' ? `${button('open', phase === 'closed' ? 'Open voting again' : 'Open voting now')}<p class="quiet">Voting stays open for ${minutes(current.lasts)} min.</p>` : phase === 'voting' ? '<p class="closes-line" data-closes></p>' : '';
+    const vote = phase === 'listening' || phase === 'closed' ? `${button('open', phase === 'closed' ? 'Open voting again' : 'Open voting now')}<p class="quiet">Voting stays open for ${minutes(Math.min(current.lasts, current.length - Math.floor(current.elapsed)))} min.</p>` : phase === 'voting' ? '<p class="closes-line" data-closes></p>' : '';
     controls = `${vote}${button('applause', 'Cue applause', { primary: canCue })}<p class="quiet">${hint}</p>${secondary}`;
   }
   const adjust = phase === 'applause' ? '' : `<div class="adjust" role="group" aria-labelledby="adjust-title"><span class="quiet" id="adjust-title">Adjust the clock</span>${nudgeButton(-60, '−1 min')}${nudgeButton(60, '+1 min')}</div>`;
@@ -183,7 +183,7 @@ function admin(current: Session): string {
 
 function timingCard(current: Session): string {
   const field = (key: keyof Timing, label: string): string => `<label class="timing-row"><span>${label}</span><input class="input" name="${key}" inputmode="decimal" autocomplete="off" data-key="${key}" value="${minutes(current[key])}"><span class="quiet">min</span></label>`;
-  return `<section class="card" aria-labelledby="timing-title"><h2 id="timing-title">Timing</h2><form class="form" data-timing>${field('length', 'Talk length')}${field('opensAt', 'Voting opens at')}${field('lasts', 'Voting lasts')}<button class="button small" data-key="save-timing"${pending || !connected ? ' disabled' : ''}>Save timing</button></form><p class="quiet">The timing stays for the next talks.</p></section>`;
+  return `<section class="card" aria-labelledby="timing-title"><h2 id="timing-title">Timing</h2><form class="form" data-timing>${field('length', 'Talk length')}${field('opensAt', 'Voting opens at')}${field('lasts', 'Voting lasts')}<button class="button small" data-key="save-timing"${pending || !connected ? ' disabled' : ''}>Save timing</button></form><p class="quiet">A change applies now and stays for the next talks.</p></section>`;
 }
 
 function result(opinion: Opinion, label: string): string {
@@ -433,10 +433,14 @@ root.addEventListener('submit', event => {
   if (event.target.hasAttribute('data-speaker')) act({ type: 'speaker', name: String(new FormData(event.target).get('speaker')) });
   if (event.target.hasAttribute('data-timing')) {
     const form = new FormData(event.target);
-    const seconds = (key: keyof Timing): number => Math.round(Number(String(form.get(key)).replace(',', '.')) * 60);
+    const seconds = (key: keyof Timing): number => {
+      const value = String(form.get(key)).trim().replace(',', '.');
+      return value ? Math.round(Number(value) * 60) : Number.NaN;
+    };
     const timing = { length: seconds('length'), opensAt: seconds('opensAt'), lasts: seconds('lasts') };
-    if (validTiming(timing)) act({ type: 'timing', ...timing });
-    else flash('Check the timing. The talk lasts 1 to 120 min, voting lasts at least 0.25 min, and voting opens before the talk ends.');
+    if (!validTiming(timing)) { flash('Check the timing. The talk lasts 1 to 120 min. Voting lasts 0.25 to 120 min and opens before the talk ends.'); return; }
+    if (session?.mode === 'talk' && !session.applause && timing.length <= session.elapsed && !confirm('The new talk length is shorter than the time used. This ends the talk now. Continue?')) return;
+    act({ type: 'timing', ...timing });
   }
 });
 
