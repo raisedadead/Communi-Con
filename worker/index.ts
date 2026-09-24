@@ -69,6 +69,7 @@ function parseAction(value: unknown): Action | null {
 export class Room extends Server<Env> {
   static options = { hibernate: true };
   private room: RoomRecord | undefined;
+  private presenceTimer: ReturnType<typeof setTimeout> | undefined;
 
   async onStart(): Promise<void> {
     this.room = await this.ctx.storage.get<RoomRecord>('room');
@@ -124,6 +125,14 @@ export class Room extends Server<Env> {
     return [...this.peers('admin'), ...this.peers('stage')];
   }
 
+  private presence(): void {
+    this.send(this.watchers());
+    this.presenceTimer ??= setTimeout(() => {
+      this.presenceTimer = undefined;
+      if (this.room) this.send(this.peers('audience'));
+    }, 3000);
+  }
+
   private async schedule(): Promise<void> {
     const session = this.current();
     const boundary = [300, 480, 600].find(seconds => seconds > session.elapsed);
@@ -155,7 +164,8 @@ export class Room extends Server<Env> {
     const peer = await this.peer(context.request);
     if (!peer) { connection.close(1008, 'Room access denied'); return; }
     connection.setState(peer);
-    this.send([connection, ...this.watchers()]);
+    this.send([connection]);
+    this.presence();
   }
 
   async onMessage(connection: Connection<Peer>, message: WSMessage): Promise<void> {
@@ -199,7 +209,7 @@ export class Room extends Server<Env> {
     this.send(this.getConnections<Peer>());
   }
 
-  onClose(): void { if (this.room) this.send(this.watchers()); }
+  onClose(): void { if (this.room) this.presence(); }
 
   async onAlarm(): Promise<void> {
     if (!this.room) return;
