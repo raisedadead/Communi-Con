@@ -3,11 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "pnpm@12.4.1",
   "scripts": {
-    "dev": "npm run build && npm run preview",
-    "build": "npm run check && vite build",
-    "preview": "X_LOCAL_EXPLORER=false X_LOCAL_OBSERVABILITY=false wrangler dev --ip 127.0.0.1 --port 8000 --local",
-    "check": "tsc --noEmit && tsc --noEmit -p tsconfig.worker.json"
+    "check": "tsc --noEmit && tsc --noEmit -p tsconfig.worker.json",
+    "build": "pnpm check && vite build",
+    "dev": "pnpm build && wrangler dev --port 8000",
+    "deploy": "pnpm build && wrangler deploy"
   },
   "dependencies": {
     "partyserver": "0.5.10",

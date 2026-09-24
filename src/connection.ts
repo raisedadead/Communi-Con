@@ -5,7 +5,7 @@ import type { Role, RoomSnapshot, ServerMessage } from './protocol';
 interface Callbacks {
   state: (snapshot: RoomSnapshot) => void;
   connection: (connected: boolean) => void;
-  error: (message: string) => void;
+  error: (message: string, fatal: boolean) => void;
 }
 
 export interface RoomConnection {
@@ -19,9 +19,11 @@ export function connectRoom(room: string, role: Role, key: string, callbacks: Ca
   let snapshot: RoomSnapshot | undefined;
   let ready = false;
   let closed = false;
+  let hiddenAt = 0;
 
   function refresh(): void {
-    if (!document.hidden) socket?.reconnect();
+    if (document.hidden) hiddenAt = Date.now();
+    else if (Date.now() - hiddenAt > 10_000) socket?.reconnect();
   }
 
   async function start(): Promise<void> {
@@ -34,19 +36,23 @@ export function connectRoom(room: string, role: Role, key: string, callbacks: Ca
       snapshot = await response.json() as RoomSnapshot;
       if (closed) return;
       callbacks.state(snapshot);
-      socket = new PartySocket({ host: location.host, party: 'room', room, query, maxEnqueuedMessages: 0, minReconnectionDelay: 500, maxReconnectionDelay: 5000 });
+      socket = new PartySocket({ host: location.host, party: 'room', room, query, maxEnqueuedMessages: 0, minReconnectionDelay: 500, maxReconnectionDelay: 5000, shouldReconnectOnClose: event => event.code !== 1008 });
       socket.addEventListener('message', event => {
         const message = JSON.parse(String(event.data)) as ServerMessage;
-        if (message.type === 'error') { callbacks.error(message.message); return; }
+        if (message.type === 'error') { callbacks.error(message.message, false); return; }
         snapshot = message;
         ready = true;
         callbacks.connection(true);
         callbacks.state(message);
       });
-      socket.addEventListener('close', () => { ready = false; callbacks.connection(false); });
+      socket.addEventListener('close', event => {
+        ready = false;
+        callbacks.connection(false);
+        if (event.code === 1008) callbacks.error('Unable to join the room. Allow cookies for this site, then reload the page.', true);
+      });
       document.addEventListener('visibilitychange', refresh);
     } catch (error) {
-      callbacks.error(error instanceof Error ? error.message : 'Unable to reach the room. Check your connection and try again.');
+      callbacks.error(error instanceof Error ? error.message : 'Unable to reach the room. Check your connection and try again.', true);
     }
   }
 

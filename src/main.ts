@@ -118,7 +118,7 @@ function admin(current: Session): string {
   }
   const votes = phase === 'lobby' ? '' : `<section class="card" aria-labelledby="votes-title"><h2 id="votes-title">Votes</h2>${result('keep', 'Keep going')}${result('wrap', 'Wrap it up')}<p class="quiet" data-total></p><p class="quiet">Only co-chairs see these numbers.</p></section>`;
   const jumps = phase === 'lobby' ? '' : `<section class="card" aria-labelledby="clock-title"><h2 id="clock-title">Set the clock</h2><p class="quiet">Use this to rehearse, or to correct a late start. 00:00 clears the votes.</p><div class="jumps">${[0, 300, 480, 600].map(seconds => `<button class="button" data-seek="${seconds}" data-key="seek-${seconds}"${pending || !connected ? ' disabled' : ''}>${timeLabel(seconds)}</button>`).join('')}</div></section>`;
-  const share = `<section class="card" aria-labelledby="share-title"><h2 id="share-title">Share</h2><a class="button" href="${escape(links.stage())}" target="_blank" rel="noopener">Open stage screen${icon('external')}</a><button class="button" data-share="audience" data-key="share-audience">Share audience link</button><button class="button" data-share="admin" data-key="share-admin">Share co-chair link</button><p class="quiet">Anyone with the co-chair link can control the talk and see the votes.</p></section>`;
+  const share = `<section class="card" aria-labelledby="share-title"><h2 id="share-title">Share</h2><a class="button" href="${escape(links.stage())}" target="_blank" rel="noopener">Open stage screen${icon('external')}</a><button class="button" data-share="stage" data-key="share-stage">Share stage link</button><button class="button" data-share="audience" data-key="share-audience">Share audience link</button><button class="button" data-share="admin" data-key="share-admin">Share co-chair link</button><p class="quiet">Anyone with the co-chair link can control the talk and see the votes.</p></section>`;
   return `${header('Co-chair')}<main class="screen"><section class="card"><p class="label">${label}</p>${clock()}${controls}</section>${votes}${jumps}${share}</main>`;
 }
 
@@ -215,9 +215,11 @@ function start(): void {
   if (role === 'stage') void QRCode.toString(links.audience(), { type: 'svg', margin: 4, color: { dark: '#000000', light: '#ffffff' } }).then(svg => { qr = svg; render(); });
   connection = connectRoom(room, role, key, {
     state(next): void {
+      if (role === 'admin' && !snapshot) localStorage.setItem('cc-room', room);
+      const answered = !snapshot || next.version !== snapshot.version || next.roundId !== snapshot.roundId || (pendingVote !== null && next.opinion === pendingVote);
       snapshot = next;
       receivedAt = Date.now();
-      settle();
+      if (answered) settle();
       tick();
     },
     connection(value): void {
@@ -225,10 +227,10 @@ function start(): void {
       if (!value) settle();
       render();
     },
-    error(text): void {
+    error(text, stop): void {
       settle();
-      if (snapshot) flash(text);
-      else { fatal = text; render(); }
+      if (stop) { fatal = text; render(); }
+      else flash(text);
     },
   });
   render();
@@ -244,7 +246,6 @@ async function create(): Promise<void> {
     room = created.room;
     key = created.key;
     localStorage.setItem(`cc-key:${room}`, key);
-    localStorage.setItem('cc-room', room);
     history.replaceState(null, '', `/admin?room=${room}`);
     pending = false;
     start();
@@ -254,8 +255,8 @@ async function create(): Promise<void> {
   }
 }
 
-async function share(kind: 'audience' | 'admin'): Promise<void> {
-  const url = kind === 'audience' ? links.audience() : links.admin();
+async function share(kind: 'audience' | 'stage' | 'admin'): Promise<void> {
+  const url = links[kind]();
   try {
     if (navigator.share) await navigator.share({ url });
     else { await navigator.clipboard.writeText(url); flash('Link copied.'); }
@@ -272,19 +273,16 @@ root.addEventListener('click', event => {
   if (action === 'start' || action === 'reset' || action === 'pause' || action === 'applause') act({ type: action });
   if (vote === 'keep' || vote === 'wrap') act({ type: 'vote', opinion: vote });
   if (seek) act({ type: 'seek', seconds: Number(seek) });
-  if (kind === 'audience' || kind === 'admin') void share(kind);
+  if (kind === 'audience' || kind === 'stage' || kind === 'admin') void share(kind);
   if (target.hasAttribute('data-create')) void create();
   if (target.hasAttribute('data-retry')) start();
 });
 
 if (role === 'admin') {
   const shared = new URLSearchParams(location.hash.slice(1)).get('key');
-  if (room && shared) {
-    localStorage.setItem(`cc-key:${room}`, shared);
-    history.replaceState(null, '', `/admin?room=${room}`);
-  }
+  if (roomPattern.test(room) && shared && /^[a-f0-9]{64}$/.test(shared)) localStorage.setItem(`cc-key:${room}`, shared);
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   key = room ? localStorage.getItem(`cc-key:${room}`) || '' : '';
-  if (room && key) localStorage.setItem('cc-room', room);
 }
 document.body.dataset.role = role;
 setInterval(tick, 250);

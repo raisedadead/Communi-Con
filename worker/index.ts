@@ -91,12 +91,12 @@ export class Room extends Server<Env> {
     return tokenPattern.test(identity) ? { role, participant: await hash(identity) } : null;
   }
 
+  private peers(role: Role): Connection<Peer>[] {
+    return [...this.getConnections<Peer>(role)].filter(connection => connection.state?.role === role);
+  }
+
   private participants(): number {
-    const ids = new Set<string>();
-    for (const connection of this.getConnections<Peer>('audience')) {
-      if (connection.state?.participant) ids.add(connection.state.participant);
-    }
-    return ids.size;
+    return new Set(this.peers('audience').map(connection => connection.state!.participant)).size;
   }
 
   private snapshot(peer: Peer, participants: number): RoomSnapshot {
@@ -121,7 +121,7 @@ export class Room extends Server<Env> {
   }
 
   private watchers(): Connection<Peer>[] {
-    return [...this.getConnections<Peer>('admin'), ...this.getConnections<Peer>('stage')];
+    return [...this.peers('admin'), ...this.peers('stage')];
   }
 
   private async schedule(): Promise<void> {
@@ -182,7 +182,7 @@ export class Room extends Server<Env> {
       if (!ballotOpen(current)) { fail('Voting is closed.'); return; }
       this.room.votes[peer.participant!] = action.opinion;
       await this.ctx.storage.put('room', this.room);
-      this.send([connection, ...this.getConnections<Peer>('admin')]);
+      this.send([connection, ...this.peers('admin')]);
       return;
     }
     const next = transition(current, action);

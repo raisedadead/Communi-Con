@@ -82,5 +82,5 @@ svg { width: 20px; height: 20px; flex: none; }
 .stage-time { font-size: clamp(56px, 18vmin, 220px); font-weight: 700; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .stage-host { color: var(--muted); font-size: clamp(16px, 3vmin, 36px); font-variant-numeric: tabular-nums; }
 
-.notice { position: fixed; inset-inline: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); max-width: 28rem; margin-inline: auto; padding: 14px 16px; border-radius: 12px; background: var(--ink); color: var(--paper); font-size: 15px; }
+.notice { pointer-events: none; position: fixed; inset-inline: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); max-width: 28rem; margin-inline: auto; padding: 14px 16px; border-radius: 12px; background: var(--ink); color: var(--paper); font-size: 15px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
