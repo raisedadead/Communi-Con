@@ -68,6 +68,11 @@ svg { width: 20px; height: 20px; flex: none; }
 .button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 12px 16px; border: 1px solid var(--edge); border-radius: 14px; background: transparent; font-family: var(--display); font-size: 17px; font-weight: 600; text-decoration: none; cursor: pointer; transition: scale 150ms cubic-bezier(0.2, 0, 0, 1), background-color 150ms; }
 .button.primary { min-height: 60px; border-color: transparent; background: var(--lime); color: var(--ink); font-size: 20px; font-weight: 700; }
 .button:disabled { border-color: transparent; background: var(--track); color: var(--muted); cursor: default; }
+.form { display: grid; gap: 12px; }
+.field { display: grid; gap: 8px; font-weight: 600; }
+.input { width: 100%; min-height: 52px; padding: 12px 14px; border: 1px solid var(--edge); border-radius: 14px; background: var(--page); color: var(--text); font: inherit; font-size: 17px; font-weight: 400; }
+.input[aria-invalid="true"] { border-color: var(--warn); }
+.field-error { color: var(--warn); }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .jumps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .jumps .button { min-height: 48px; padding-inline: 4px; font-variant-numeric: tabular-nums; }

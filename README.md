@@ -11,17 +11,30 @@ Anonymous audience votes for community talks. The audience votes on phones. The 
 
 ## Run the event
 
-1. Open `/admin` on a phone. Tap **Create room**.
+1. Open `/admin` on a phone. Enter the event passphrase. Tap **Create room**.
 1. Tap **Open stage screen**. Show that screen on the projector. It shows the QR code for the audience.
 1. Tap **Share co-chair link** to give control to the other co-chairs.
 1. For each talk, tap **Start talk** when the speaker starts. Tap **Cue applause** to end the talk. Tap **Back to lobby** before the next talk.
 
 Use **Set the clock** to rehearse the phases or to correct a late start.
 
+## Set the passphrase
+
+Only a person with the event passphrase can create a room. Set the passphrase as a Worker secret:
+
+```sh
+pnpm exec wrangler secret put ADMIN_PASSPHRASE
+```
+
+You can also set it in the Cloudflare dashboard: **Workers & Pages** > **communi-con** > **Settings** > **Variables and Secrets**. Use the type **Secret**.
+
+To change the passphrase for a new event, set a new value. Rooms that exist continue to work, and their co-chair links do not change. If the secret is not set, nobody can create a room.
+
 ## Develop
 
 ```sh
 pnpm install
+echo 'ADMIN_PASSPHRASE=<local passphrase>' > .dev.vars
 pnpm dev
 ```
 
@@ -51,4 +64,5 @@ The project name must match `name` in `wrangler.jsonc`. The build image installs
 ## Limits
 
 - One browser is one participant. There is no ticket check.
+- The passphrase controls who can create a room. The co-chair link controls who can run a room.
 - The co-chair link gives full control. Do not show it on the projector.

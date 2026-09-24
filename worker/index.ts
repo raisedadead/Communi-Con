@@ -7,6 +7,7 @@ import type { Results, Role, RoomSnapshot } from '../src/protocol';
 interface Env {
   ROOM: DurableObjectNamespace<Room>;
   ASSETS: Fetcher;
+  ADMIN_PASSPHRASE?: string;
 }
 
 interface RoomRecord {
@@ -30,9 +31,19 @@ function token(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
+function digest(value: string): Promise<ArrayBuffer> {
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+}
+
 async function hash(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+  return Array.from(new Uint8Array(await digest(value)), byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function passphraseMatches(request: Request, expected: string): Promise<boolean> {
+  const body: unknown = await request.json().catch(() => null);
+  const given = body && typeof body === 'object' && 'passphrase' in body && typeof body.passphrase === 'string' ? body.passphrase.trim() : '';
+  const [a, b] = await Promise.all([digest(given), digest(expected.trim())]);
+  return given !== '' && crypto.subtle.timingSafeEqual(a, b);
 }
 
 function cookie(request: Request, name: string): string {
@@ -226,6 +237,14 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/api/rooms' && request.method === 'POST') {
       if (!sameOrigin(request)) return json({ error: 'Open this page directly to create a room.' }, 403);
+      if (!env.ADMIN_PASSPHRASE?.trim()) {
+        console.warn('Room creation denied: ADMIN_PASSPHRASE is not set');
+        return json({ error: 'Room creation is not set up. Ask the organizer to set the event passphrase.' }, 503);
+      }
+      if (!await passphraseMatches(request, env.ADMIN_PASSPHRASE)) {
+        console.warn('Room creation denied: wrong passphrase');
+        return json({ error: 'That passphrase is not correct. Check it and try again.' }, 403);
+      }
       const room = crypto.randomUUID().replaceAll('-', '');
       const key = token();
       const response = await env.ROOM.getByName(room).fetch(new Request('http://room/initialize', { method: 'POST', body: JSON.stringify({ hostHash: await hash(key) }) }));

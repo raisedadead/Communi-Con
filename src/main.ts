@@ -22,6 +22,7 @@ let connected = false;
 let pending = false;
 let pendingVote: Opinion | null = null;
 let notice = '';
+let formError = '';
 let fatal = '';
 let qr = '';
 let shown = '';
@@ -139,7 +140,10 @@ function setup(): string {
     return `${header('Co-chair')}<main class="screen"><section class="card"><h1>No co-chair access</h1><p>This browser has no key for this room. Open the co-chair link that another co-chair shared with you.</p></section></main>`;
   }
   const resume = saved ? `<a class="button primary" href="/admin?room=${escape(saved)}">Return to your room</a>` : '';
-  return `${header('Co-chair')}<main class="screen"><section class="card"><h1>Set up the room</h1><p>Create one room for the event. Put its stage screen on the projector, and keep this page open to run each talk.</p>${resume}<button class="button${saved ? '' : ' primary'}" data-create data-key="create"${pending ? ' disabled' : ''}>${pending ? 'Creating room…' : saved ? 'Create a new room' : 'Create room'}</button>${saved ? '<p class="quiet">A new room has a new QR code. Phones on the old room do not move.</p>' : ''}</section></main>`;
+  const error = formError ? `<p class="field-error" id="passphrase-error">${escape(formError)}</p>` : '';
+  const field = `<label class="field"><span>Event passphrase</span><input class="input" type="password" name="passphrase" autocomplete="current-password" required data-key="passphrase"${formError ? ' aria-invalid="true" aria-describedby="passphrase-error"' : ''}></label>${error}`;
+  const submit = `<button class="button${saved ? '' : ' primary'}" data-key="create"${pending ? ' disabled' : ''}>${pending ? 'Creating room…' : saved ? 'Create a new room' : 'Create room'}</button>`;
+  return `${header('Co-chair')}<main class="screen"><section class="card"><h1>Set up the room</h1><p>Create one room for the event. Put its stage screen on the projector, and keep this page open to run each talk.</p>${resume}<form class="form" data-create>${field}${submit}</form>${saved ? '<p class="quiet">A new room has a new QR code. Phones on the old room do not move.</p>' : ''}</section></main>`;
 }
 
 function message(title: string, text: string, retry: boolean): string {
@@ -180,10 +184,17 @@ function updateLive(): void {
 function render(): void {
   const html = view() + (notice ? `<p class="notice">${escape(notice)}</p>` : '');
   if (html !== shown) {
-    const focused = document.activeElement instanceof HTMLElement ? document.activeElement.dataset.key : undefined;
+    const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const drafts = [...root.querySelectorAll<HTMLInputElement>('input[data-key]')].filter(input => input.value !== input.defaultValue).map(input => [input.dataset.key, input.value] as const);
     root.innerHTML = html;
     shown = html;
-    if (focused) root.querySelector<HTMLElement>(`[data-key="${focused}"]`)?.focus();
+    for (const [draft, value] of drafts) {
+      const input = root.querySelector<HTMLInputElement>(`input[data-key="${draft}"]`);
+      if (input) input.value = value;
+    }
+    const restored = active?.dataset.key ? root.querySelector<HTMLElement>(`[data-key="${active.dataset.key}"]`) : null;
+    restored?.focus();
+    if (active instanceof HTMLInputElement && restored instanceof HTMLInputElement) restored.setSelectionRange(active.selectionStart, active.selectionEnd);
   }
   updateLive();
 }
@@ -249,11 +260,19 @@ function start(): void {
   render();
 }
 
-async function create(): Promise<void> {
+async function create(passphrase: string): Promise<void> {
   pending = true;
+  formError = '';
   render();
   try {
-    const response = await fetch('/api/rooms', { method: 'POST' });
+    const response = await fetch('/api/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ passphrase }) });
+    if (response.status === 403 || response.status === 503) {
+      pending = false;
+      formError = (await response.json() as { error: string }).error;
+      announce(formError);
+      render();
+      return;
+    }
     if (!response.ok) throw new Error(`Room creation failed with ${response.status}`);
     const created = await response.json() as { room: string; key: string };
     room = created.room;
@@ -287,8 +306,12 @@ root.addEventListener('click', event => {
   if (vote === 'keep' || vote === 'wrap') act({ type: 'vote', opinion: vote });
   if (seek) act({ type: 'seek', seconds: Number(seek) });
   if (kind === 'audience' || kind === 'stage' || kind === 'admin') void share(kind);
-  if (target.hasAttribute('data-create')) void create();
   if (target.hasAttribute('data-retry')) start();
+});
+
+root.addEventListener('submit', event => {
+  event.preventDefault();
+  if (event.target instanceof HTMLFormElement && event.target.hasAttribute('data-create') && !pending) void create(String(new FormData(event.target).get('passphrase')));
 });
 
 if (role === 'admin') {
