@@ -3,9 +3,9 @@ import { cursor } from './crowd';
 const colors = ['#83ac87', '#b9a5e4', '#f1ad75', '#d8e3c8'];
 const reactions = ['👏', '👍', '🙌', '💚', '👏', '✨'];
 const steps = [
-  { icon: '📱', title: 'Scan to join', text: 'The stage screen shows a QR code and an event code. Phones join in the browser, with no app and no sign-up.' },
-  { icon: '👍', title: 'Vote during the talk', text: 'When voting opens, each phone picks keep going or wrap it up. Votes are anonymous, and only the co-chairs see the count.' },
-  { icon: '👏', title: 'Cheer them off', text: 'The co-chairs cue the applause. Every phone and the stage screen celebrate the speaker.' },
+  { icon: '📱', title: 'Join', text: 'Join from any phone browser. No app, no sign-up.' },
+  { icon: '👍', title: 'Vote', text: 'When voting opens, tap Keep going or Wrap it up. Only the co-chairs see the totals.' },
+  { icon: '👏', title: 'Cheer', text: 'The co-chairs cue the applause on every screen.' },
 ];
 
 function seat(row: number, column: number): string {
@@ -32,7 +32,7 @@ function join(invalid: boolean): string {
 }
 
 export function landing(invalid = false): string {
-  const words = 'The floor is yours.'.split(' ').map((word, index) => `<span class="word" data-enter="word-${index}" style="--i:${index + 1}">${word}</span>`).join(' ');
+  const words = 'Keep going or wrap it up?'.split(' ').map((word, index) => `<span class="word" data-enter="word-${index}" style="--i:${index + 1}">${word}</span>`).join(' ');
   const list = steps.map((step, index) => `<li class="step"><span class="step-icon" aria-hidden="true">${step.icon}</span><h3><span class="step-number">${index + 1}</span>${step.title}</h3><p>${step.text}</p></li>`).join('');
-  return `<main class="landing"><section class="hero"><div class="pitch"><p class="hint">At a talk? Scan the QR code on the stage screen, or enter its event code.</p><h1 class="display">${words}</h1><p class="lede">Anonymous live votes for community talks. The audience votes from their phones, the co-chairs read the room, and everyone cheers the speaker off together.</p>${join(invalid)}</div>${scene()}</section><section class="steps" aria-labelledby="how-title"><h2 id="how-title">How it works</h2><ol>${list}</ol></section></main>`;
+  return `<main class="landing"><section class="hero"><div class="pitch"><p class="hint">At a talk? Scan the QR code or enter the event code.</p><h1 class="display">${words}</h1><p class="lede">Anonymous live votes for community talks.</p>${join(invalid)}</div>${scene()}</section><section class="steps" aria-labelledby="how-title"><h2 id="how-title">How it works</h2><ol>${list}</ol></section></main>`;
 }

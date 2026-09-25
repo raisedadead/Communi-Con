@@ -31,8 +31,15 @@ export function initialSession(): Session {
   return { mode: 'lobby', elapsed: 0, paused: false, applause: false, openedAt: null, length: 600, opensAt: 300, lasts: 300 };
 }
 
-export function validTiming({ length, opensAt, lasts }: Timing): boolean {
-  return [length, opensAt, lasts].every(Number.isInteger) && length >= 60 && length <= 7200 && lasts >= 15 && lasts <= 7200 && opensAt >= 0 && opensAt < length;
+export function timingProblem({ length, opensAt, lasts }: Timing): keyof Timing | null {
+  if (!Number.isInteger(length) || length < 60 || length > 7200) return 'length';
+  if (!Number.isInteger(opensAt) || opensAt < 0 || opensAt >= length) return 'opensAt';
+  if (!Number.isInteger(lasts) || lasts < 15 || lasts > 7200) return 'lasts';
+  return null;
+}
+
+export function validTiming(timing: Timing): boolean {
+  return timingProblem(timing) === null;
 }
 
 export function votingWindow(session: Session): { from: number; to: number } {

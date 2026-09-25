@@ -10,7 +10,7 @@ interface Callbacks {
 }
 
 export interface RoomConnection {
-  send: (action: Action) => boolean;
+  send: (action: Action, basis?: Pick<RoomSnapshot, 'roundId' | 'version'>) => boolean;
   close: () => void;
 }
 
@@ -63,9 +63,9 @@ export function connectRoom(room: string, role: Role, key: string, callbacks: Ca
 
   void start();
   return {
-    send(action): boolean {
-      if (!ready || !snapshot || !socket || socket.readyState !== WebSocket.OPEN) return false;
-      socket.send(JSON.stringify({ type: 'action', action, roundId: snapshot.roundId, version: snapshot.version }));
+    send(action, basis = snapshot): boolean {
+      if (!ready || !basis || !socket || socket.readyState !== WebSocket.OPEN) return false;
+      socket.send(JSON.stringify({ type: 'action', action, roundId: basis.roundId, version: basis.version }));
       return true;
     },
     close(): void {

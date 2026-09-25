@@ -4,7 +4,7 @@ import { connectRoom } from './connection';
 import { crowd, cursor, syncCrowd } from './crowd';
 import { codeError, landing } from './landing';
 import type { RoomConnection } from './connection';
-import { ballotOpen, phaseOf, timeLabel, transition, validTiming, votingWindow } from './session';
+import { ballotOpen, phaseOf, timeLabel, timingProblem, transition, votingWindow } from './session';
 import type { Action, Opinion, Phase, Session, Timing } from './session';
 import type { Role, RoomSnapshot } from './protocol';
 import './style.css';
@@ -28,6 +28,7 @@ let pending = false;
 let pendingVote: Opinion | null = null;
 let notice = '';
 let formError = '';
+let timingError: keyof Timing | null = null;
 let fatal = '';
 let final = false;
 let qr = '';
@@ -39,6 +40,7 @@ let connection: RoomConnection | undefined;
 let pendingTimer: ReturnType<typeof setTimeout> | undefined;
 let noticeTimer: ReturnType<typeof setTimeout> | undefined;
 
+const timingHelp: Readonly<Record<keyof Timing, string>> = { length: 'Talk length must be 1 to 120 min.', opensAt: 'Voting must open between 0 min and the talk length.', lasts: 'Voting must last 0.25 to 120 min.' };
 const code = (): string => `${room.slice(0, 4)}-${room.slice(4)}`;
 const links = {
   audience: (): string => `${location.origin}/?room=${room}`,
@@ -122,21 +124,21 @@ function audience(current: Session): string {
   if (phase === 'lobby') {
     const title = name
       ? `<p><span class="live next" data-enter="next">Up next</span></p><h1 class="display" data-enter="next-${escape(name)}" style="--i:1">${escape(name)}</h1>`
-      : '<h1 class="display" data-enter="floor">The floor is yours.</h1>';
-    return `${header()}<main class="screen"><section class="card crowd-card">${crowd(0, true)}<p class="quiet">Each cursor is one person in the room. Yours is lime.</p></section><section class="intro">${title}<p>Keep this page open. During each talk, the co-chairs open the vote: keep going, or wrap it up.</p><p class="quiet">Your vote is anonymous. Each first vote sends a 👍 or 👎 to the screens. Only the co-chairs see the totals.</p></section></main>`;
+      : '<h1 class="display" data-enter="floor">You are in.</h1>';
+    return `${header()}<main class="screen"><section class="card crowd-card">${crowd(0, true)}<p class="quiet">Each cursor is one person. Yours is lime.</p></section><section class="intro">${title}<p>Keep this page open. Voting opens during each talk.</p><p class="quiet">Votes are anonymous. Your first vote shows as 👍 or 👎 on the screens. Only the co-chairs see the totals.</p></section></main>`;
   }
   if (phase === 'ended') {
-    return `${header()}<main class="screen"><section class="intro"><h1 class="display" data-enter="ended">Time is up.</h1><p data-enter="ended-text" style="--i:1">Voting is closed. Thank you for listening.</p></section></main>`;
+    return `${header()}<main class="screen"><section class="intro"><h1 class="display" data-enter="ended">Time is up.</h1><p data-enter="ended-text" style="--i:1">Voting is closed.</p></section></main>`;
   }
   const open = ballotOpen(current);
   const opinion = pendingVote || snapshot?.opinion || null;
   const label = current.paused ? 'Paused' : open ? 'Voting open' : phase === 'closed' ? 'Voting closed' : 'Listening';
   const mood = current.paused ? 'paused' : open ? 'open' : 'live';
   const closed = phase === 'closed';
-  const hint = closed ? `Voting is closed.${opinion ? ' Thank you for your vote.' : ''}` : current.paused ? 'Voting continues when the talk resumes.' : pendingVote ? 'Sending your vote…' : opinion ? 'Vote received. You can change it while voting is open.' : 'Only the co-chairs see the totals.';
+  const hint = closed ? opinion ? 'Thank you for voting.' : '' : current.paused ? 'Voting continues when the talk resumes.' : pendingVote ? 'Sending…' : opinion ? 'Vote received. You can change it until voting closes.' : 'Only the co-chairs see the totals.';
   const ballot = phase === 'listening'
     ? `<p>${current.openedAt === null ? `Voting opens at ${timeLabel(current.opensAt)}.` : 'Voting opens soon.'}</p>`
-    : `<div class="ballot-head"><h2>Your verdict</h2>${open ? '<span class="closes" data-closes></span>' : ''}</div><div class="choices">${choice('keep', '👍', 'Keep going', opinion, open)}${choice('wrap', '👎', 'Wrap it up', opinion, open)}</div><p class="quiet">${hint}</p>`;
+    : `<div class="ballot-head"><h2>Your vote</h2>${open ? '<span class="closes" data-closes></span>' : ''}</div><div class="choices">${choice('keep', '👍', 'Keep going', opinion, open)}${choice('wrap', '👎', 'Wrap it up', opinion, open)}</div>${hint ? `<p class="quiet">${hint}</p>` : ''}`;
   return `${header()}<main class="screen"><section class="card">${onAir(name)}<h1 class="state" data-mood="${mood}" data-enter="state-${label}"><span class="pulse" aria-hidden="true"></span>${label}</h1>${clock(current)}</section><section class="card">${ballot}</section></main>`;
 }
 
@@ -145,11 +147,11 @@ function stage(current: Session): string {
   const name = snapshot?.speaker || '';
   if (phase === 'applause') return cue(name ? `Clap for ${escape(name)}.` : '');
   const listening = current.openedAt === null ? `Scan to join. Voting opens at ${timeLabel(current.opensAt)}.` : 'Scan to join.';
-  const line = current.paused ? 'Paused' : { lobby: name ? 'Scan to join and vote.' : 'Scan to join Communi-Con', listening, voting: 'Voting is open. Scan to vote.', closed: 'Voting is closed.', ended: 'Time is up' }[phase];
+  const line = current.paused ? 'Talk paused.' : { lobby: 'Scan to join.', listening, voting: 'Voting is open. Scan to vote.', closed: 'Voting is closed.', ended: 'Time is up.' }[phase];
   const tag = phase === 'lobby' ? '<span class="live next">Up next</span>' : '<span class="live">On air</span>';
   const who = name ? `<p data-enter="tag-${phase === 'lobby'}">${tag}</p><p class="stage-name" data-enter="stage-${escape(name)}" style="--i:1">${escape(name)}</p>` : '';
   const time = phase === 'lobby' ? '' : '<p class="stage-time" role="timer" data-clock></p>';
-  return `<main class="stage"><div class="qr" role="img" aria-label="QR code for ${escape(links.audience())}">${qr}</div><div class="stage-text">${who}<h1 class="stage-line" data-enter="line-${line}" style="--i:2">${line}</h1>${time}</div><p class="stage-count">${people()}</p><p class="stage-host">No camera? Go to <strong>${escape(location.host)}</strong> and enter <strong>${code()}</strong></p></main>`;
+  return `<main class="stage"><div class="qr" role="img" aria-label="QR code for ${escape(links.audience())}">${qr}</div><div class="stage-text">${who}<h1 class="stage-line" data-enter="line-${line}" style="--i:2">${line}</h1>${time}</div><p class="stage-count">${people()}</p><p class="stage-host">Cannot scan? Go to <strong>${escape(location.host)}</strong> and enter <strong>${code()}</strong></p></main>`;
 }
 
 function speakerForm(label: string): string {
@@ -157,7 +159,7 @@ function speakerForm(label: string): string {
 }
 
 function shareCard(): string {
-  return `<section class="card" aria-labelledby="share-title"><h2 id="share-title">Share</h2><a class="button" href="${escape(links.stage())}" target="_blank" rel="noopener">Open stage screen${icon('external')}</a><button class="button" data-share="stage" data-key="share-stage">Share stage link</button><p class="quiet">Or type this address on the projector computer: <strong class="address">${escape(location.host)}<wbr>${escape(links.stage().slice(location.origin.length))}</strong></p><button class="button" data-share="audience" data-key="share-audience">Share audience link</button><button class="button" data-share="admin" data-key="share-admin">Share co-chair link</button><p class="quiet">Anyone with the co-chair link can control the talk and see the votes.</p></section>`;
+  return `<section class="card" aria-labelledby="share-title"><h2 id="share-title">Share</h2><a class="button" href="${escape(links.stage())}" target="_blank" rel="noopener">Open stage screen${icon('external')}</a><button class="button" data-share="stage" data-key="share-stage">Share stage link</button><p class="quiet">Or type this address on the projector: <strong class="address">${escape(location.host)}<wbr>${escape(links.stage().slice(location.origin.length))}</strong></p><button class="button" data-share="audience" data-key="share-audience">Share audience link</button><button class="button" data-share="admin" data-key="share-admin">Share co-chair link</button><p class="quiet">Anyone with the co-chair link can run the talk and see the totals.</p></section>`;
 }
 
 function admin(current: Session): string {
@@ -168,26 +170,26 @@ function admin(current: Session): string {
   const label = current.paused ? 'Paused' : { lobby: 'Between talks', listening: 'Listening', voting: 'Voting open', closed: 'Voting closed', applause: 'Applause on screen', ended: 'Time is up' }[phase];
   const title = `<h1 class="state" data-mood="${current.paused ? 'paused' : phase === 'lobby' ? 'idle' : 'live'}"><span class="pulse" aria-hidden="true"></span>${label}</h1>`;
   if (phase === 'lobby') {
-    return `${header('Co-chair')}<main class="screen"><section class="card">${title}${speakerForm('Next speaker')}${button('start', 'Start talk', { primary: true })}<p class="quiet">Tap Start talk when the speaker starts. Voting opens at ${timeLabel(current.opensAt)} and lasts ${minutes(Math.min(current.lasts, current.length - current.opensAt))} min.</p></section>${timingCard(current)}${shareCard()}</main>`;
+    return `${header('Co-chair')}<main class="screen"><section class="card">${title}${speakerForm('Next speaker')}${button('start', 'Start talk', { primary: true })}<p class="quiet">Voting opens at ${timeLabel(current.opensAt)} for ${minutes(Math.min(current.lasts, current.length - current.opensAt))} min.</p></section>${timingCard(current)}${shareCard()}</main>`;
   }
   let controls: string;
   if (phase === 'applause') controls = `${button('reset', 'Next talk', { primary: true })}<p class="quiet">This clears the votes and the speaker name.</p>`;
   else {
-    const hint = canCue ? 'Every phone and the stage screen show the cue.' : 'Cue applause before voting only if the speaker has finished.';
     const secondary = running ? `<div class="row">${button('pause', current.paused ? 'Resume' : 'Pause')}${button('reset', 'End talk')}</div>` : `<div class="row">${button('reset', 'Next talk')}</div>`;
     const vote = phase === 'listening' || phase === 'closed' ? `${button('open', phase === 'closed' ? 'Open voting again' : 'Open voting now')}<p class="quiet">Voting stays open for ${minutes(Math.min(current.lasts, current.length - Math.floor(current.elapsed)))} min.</p>` : phase === 'voting' ? '<p class="closes-line" data-closes></p>' : '';
-    controls = `${vote}${button('applause', 'Cue applause', { primary: canCue })}<p class="quiet">${hint}</p>${secondary}`;
+    controls = `${vote}${button('applause', 'Cue applause', { primary: canCue })}<p class="quiet">Shows on every screen.</p>${secondary}`;
   }
   const adjust = phase === 'applause' ? '' : `<div class="adjust" role="group" aria-labelledby="adjust-title"><span class="quiet" id="adjust-title">Adjust the clock</span>${nudgeButton(-60, '−1 min')}${nudgeButton(60, '+1 min')}</div>`;
   const onAirLine = name ? `<p class="on-air-line"><span class="live">On air</span>${escape(name)}</p>` : '';
-  const votes = `<section class="card" aria-labelledby="votes-title"><h2 id="votes-title">Votes</h2>${result('keep', 'Keep going')}${result('wrap', 'Wrap it up')}<p class="quiet" data-total></p><p class="quiet">Only co-chairs see these numbers.</p></section>`;
-  const speaker = `<section class="card" aria-labelledby="speaker-title"><h2 id="speaker-title">Speaker</h2>${speakerForm('Speaker name')}</section>`;
+  const votes = `<section class="card" aria-labelledby="votes-title"><h2 id="votes-title">Votes</h2>${result('keep', 'Keep going')}${result('wrap', 'Wrap it up')}<p class="quiet" data-total></p><p class="quiet">Only the co-chairs see these totals.</p></section>`;
+  const speaker = `<section class="card" aria-labelledby="speaker-title"><h2 id="speaker-title">Speaker</h2>${speakerForm('Name')}</section>`;
   return `${header('Co-chair')}<main class="screen"><section class="card">${onAirLine}${title}${clock(current)}${adjust}${controls}</section>${votes}${speaker}${timingCard(current)}${shareCard()}</main>`;
 }
 
 function timingCard(current: Session): string {
-  const field = (key: keyof Timing, label: string): string => `<label class="timing-row"><span>${label}</span><input class="input" name="${key}" inputmode="decimal" autocomplete="off" data-key="${key}" value="${minutes(current[key])}"><span class="quiet">min</span></label>`;
-  return `<section class="card" aria-labelledby="timing-title"><h2 id="timing-title">Timing</h2><form class="form" data-timing>${field('length', 'Talk length')}${field('opensAt', 'Voting opens at')}${field('lasts', 'Voting lasts')}<button class="button small" data-key="save-timing"${pending || !connected ? ' disabled' : ''}>Save timing</button></form><p class="quiet">A change applies now and stays for the next talks.</p></section>`;
+  const field = (key: keyof Timing, label: string): string => `<label class="timing-row"><span>${label}</span><input class="input" name="${key}" inputmode="decimal" autocomplete="off" data-key="${key}" value="${minutes(current[key])}"${timingError === key ? ' aria-invalid="true" aria-describedby="timing-error"' : ''}><span class="quiet">min</span></label>`;
+  const error = timingError ? `<p class="field-error" id="timing-error">${timingHelp[timingError]}</p>` : '';
+  return `<section class="card" aria-labelledby="timing-title"><h2 id="timing-title">Timing</h2><form class="form" data-timing>${field('length', 'Talk length')}${field('opensAt', 'Voting opens at')}${field('lasts', 'Voting lasts')}${error}<button class="button small" data-key="save-timing"${pending || !connected ? ' disabled' : ''}>Save timing</button></form><p class="quiet">Applies now and to the next talks.</p></section>`;
 }
 
 function result(opinion: Opinion, label: string): string {
@@ -197,17 +199,17 @@ function result(opinion: Opinion, label: string): string {
 function setup(): string {
   const saved = localStorage.getItem('cc-room');
   if (room) {
-    return `${header('Co-chair')}<main class="screen"><section class="card"><h1>No co-chair access</h1><p>This browser has no key for this room. Open the co-chair link that another co-chair shared with you.</p></section></main>`;
+    return `${header('Co-chair')}<main class="screen"><section class="card"><h1>No co-chair access</h1><p>This browser cannot run this room. Ask a co-chair for the co-chair link.</p></section></main>`;
   }
   const resume = saved ? `<a class="button primary" href="/admin?room=${escape(saved)}">Return to your room</a>` : '';
   const error = formError ? `<p class="field-error" id="passphrase-error">${escape(formError)}</p>` : '';
   const field = `<label class="field"><span>Event passphrase</span><input class="input" type="password" name="passphrase" autocomplete="current-password" required data-key="passphrase"${formError ? ` aria-invalid="true" aria-describedby="passphrase-error" data-enter="error-${escape(formError)}"` : ''}></label>${error}`;
   const submit = `<button class="button${saved ? '' : ' primary'}" data-key="create"${pending ? ' disabled' : ''}>${pending ? 'Creating room…' : saved ? 'Create a new room' : 'Create room'}</button>`;
-  return `${header('Co-chair')}<main class="screen"><section class="card"><h1>Set up the room</h1><p>Create one room for the event. Put its stage screen on the projector, and keep this page open to run each talk.</p>${resume}<form class="form" data-create>${field}${submit}</form>${saved ? '<p class="quiet">A new room has a new QR code. Phones on the old room do not move.</p>' : ''}</section></main>`;
+  return `${header('Co-chair')}<main class="screen"><section class="card"><h1>Set up the room</h1><p>Create one room per event. Run every talk from this page.</p>${resume}<form class="form" data-create>${field}${submit}</form>${saved ? '<p class="quiet">A new room has a new QR code and event code. Phones stay in the old room.</p>' : ''}</section></main>`;
 }
 
 function message(title: string, text: string, action = ''): string {
-  return `${header()}<main class="screen"><section class="card"><h1>${escape(title)}</h1><p>${escape(text)}</p>${action}</section></main>`;
+  return `${header()}<main class="screen"><section class="card"><h1>${escape(title)}</h1>${text ? `<p>${escape(text)}</p>` : ''}${action}</section></main>`;
 }
 
 function recovery(): string {
@@ -219,7 +221,7 @@ function view(): string {
   if (fatal) return message('Unable to join', fatal, recovery());
   if (role === 'admin' && (!room || !key)) return setup();
   if (!room) return `${header()}${landing(formError !== '')}`;
-  if (!session) return message('Connecting…', 'Joining the room.');
+  if (!session) return message('Connecting…', '');
   return role === 'admin' ? admin(session) : role === 'stage' ? stage(session) : audience(session);
 }
 
@@ -251,7 +253,7 @@ function updateLive(): void {
     if (bar) bar.style.width = `${share}%`;
   }
   const total = root.querySelector('[data-total]');
-  if (total) total.textContent = `${results.total} ${results.total === 1 ? 'vote' : 'votes'} from ${participants} connected.`;
+  if (total) total.textContent = `${results.total} ${results.total === 1 ? 'vote' : 'votes'}. ${participants} ${participants === 1 ? 'phone' : 'phones'} connected.`;
 }
 
 function restart(element: HTMLElement, name: string): void {
@@ -320,12 +322,12 @@ function settle(): void {
   clearTimeout(pendingTimer);
 }
 
-function act(action: Action): boolean {
+function act(action: Action, basis?: Pick<RoomSnapshot, 'roundId' | 'version'>): boolean {
   if (pending) return false;
-  if (!connection?.send(action)) { flash('Not connected. Wait for the connection to return, then try again.'); return false; }
+  if (!connection?.send(action, basis)) { flash('Not connected. Try again in a moment.'); return false; }
   pending = true;
   if (action.type === 'vote') pendingVote = action.opinion;
-  pendingTimer = setTimeout(() => { settle(); flash('No reply from the room. Check your connection and try again.'); }, 5000);
+  pendingTimer = setTimeout(() => { settle(); flash('No reply. Check your connection and try again.'); }, 5000);
   render();
   return true;
 }
@@ -336,7 +338,7 @@ function tick(): void {
   const phase = phaseOf(session);
   if (lastPhase && phase !== lastPhase && !ballotOpen(session)) fx.replaceChildren();
   if (role === 'audience' && lastPhase && phase !== lastPhase) {
-    announce({ lobby: 'The talk ended. Waiting for the next talk.', listening: 'The talk started.', voting: 'Voting is open.', closed: 'Voting is closed.', applause: 'Round of applause. Clap for the speaker.', ended: 'Time is up. Voting is closed.' }[phase]);
+    announce({ lobby: 'The talk ended.', listening: 'The talk started.', voting: 'Voting is open.', closed: 'Voting is closed.', applause: 'Round of applause. Clap for the speaker.', ended: 'Time is up. Voting is closed.' }[phase]);
     if (phase === 'voting') navigator.vibrate?.(200);
     if (phase === 'applause') navigator.vibrate?.([120, 60, 120, 60, 240]);
   }
@@ -351,10 +353,11 @@ function start(): void {
   connected = false;
   fatal = '';
   final = false;
-  if (!roomPattern.test(room)) { final = true; fatal = 'This link is incomplete. Scan the QR code on the stage screen again.'; render(); return; }
+  if (!roomPattern.test(room)) { final = true; fatal = role === 'stage' ? 'This address is incomplete. Copy it from the Share card.' : 'This link is incomplete.'; render(); return; }
   if (role === 'stage') void QRCode.toString(links.audience(), { type: 'svg', margin: 4, color: { dark: '#000000', light: '#ffffff' } }).then(svg => { qr = svg; render(); });
   connection = connectRoom(room, role, key, {
     state(next): void {
+      if (snapshot && (['length', 'opensAt', 'lasts'] as const).some(field => next.session[field] !== snapshot!.session[field])) timingError = null;
       if (role === 'admin' && !snapshot) localStorage.setItem('cc-room', room);
       const answered = !snapshot || next.version !== snapshot.version || next.roundId !== snapshot.roundId || (pendingVote !== null && next.opinion === pendingVote);
       const sameRound = snapshot && next.version === snapshot.version && next.roundId === snapshot.roundId;
@@ -419,6 +422,21 @@ function join(value: string): void {
   render();
 }
 
+function ask(question: string, confirmLabel: string): Promise<boolean> {
+  const dialog = document.createElement('dialog');
+  dialog.className = 'ask';
+  dialog.setAttribute('aria-labelledby', 'ask-question');
+  dialog.innerHTML = `<form method="dialog"><p id="ask-question">${escape(question)}</p><div class="row"><button class="button" value="cancel">Cancel</button><button class="button primary" value="confirm">${escape(confirmLabel)}</button></div></form>`;
+  const opener = document.activeElement instanceof HTMLElement ? document.activeElement.dataset.key : undefined;
+  document.body.append(dialog);
+  dialog.showModal();
+  return new Promise(resolve => dialog.addEventListener('close', () => {
+    dialog.remove();
+    if (opener && document.activeElement === document.body) root.querySelector<HTMLElement>(`[data-key="${opener}"]`)?.focus();
+    resolve(dialog.returnValue === 'confirm');
+  }, { once: true }));
+}
+
 async function share(kind: 'audience' | 'stage' | 'admin'): Promise<void> {
   const url = links[kind]();
   try {
@@ -429,14 +447,15 @@ async function share(kind: 'audience' | 'stage' | 'admin'): Promise<void> {
   }
 }
 
-root.addEventListener('click', event => {
+root.addEventListener('click', async event => {
   const target = event.target instanceof Element ? event.target.closest<HTMLElement>('button') : null;
   if (!target || target.matches(':disabled')) return;
   const { action, vote, nudge, share: kind } = target.dataset;
-  if (action === 'reset' && session && phaseOf(session) !== 'applause' && phaseOf(session) !== 'ended' && !confirm('End this talk? This clears the votes and the speaker name.')) return;
-  if (action === 'applause' && session && phaseOf(session) === 'listening' && !confirm('Cue applause before voting? Do this only if the speaker has finished.')) return;
-  if (action === 'start') act({ type: 'start', speaker: root.querySelector<HTMLInputElement>('input[data-key="speaker"]')?.value ?? '' });
-  if (action === 'reset' || action === 'pause' || action === 'applause' || action === 'open') act({ type: action });
+  const basis = snapshot && { roundId: snapshot.roundId, version: snapshot.version };
+  if (action === 'reset' && session && phaseOf(session) !== 'applause' && phaseOf(session) !== 'ended' && !await ask('End this talk? This clears the votes and the speaker name.', 'End talk')) return;
+  if (action === 'applause' && session && phaseOf(session) === 'listening' && !await ask('Cue applause now? Voting has not opened.', 'Cue applause')) return;
+  if (action === 'start') act({ type: 'start', speaker: root.querySelector<HTMLInputElement>('input[data-key="speaker"]')?.value ?? '' }, basis);
+  if (action === 'reset' || action === 'pause' || action === 'applause' || action === 'open') act({ type: action }, basis);
   if (vote === 'keep' || vote === 'wrap') {
     const box = target.getBoundingClientRect();
     if (act({ type: 'vote', opinion: vote })) burst(box);
@@ -446,7 +465,7 @@ root.addEventListener('click', event => {
   if (target.hasAttribute('data-retry')) start();
 });
 
-root.addEventListener('submit', event => {
+root.addEventListener('submit', async event => {
   event.preventDefault();
   if (!(event.target instanceof HTMLFormElement)) return;
   if (event.target.hasAttribute('data-create') && !pending) void create(String(new FormData(event.target).get('passphrase')));
@@ -459,9 +478,12 @@ root.addEventListener('submit', event => {
       return value ? Math.round(Number(value) * 60) : Number.NaN;
     };
     const timing = { length: seconds('length'), opensAt: seconds('opensAt'), lasts: seconds('lasts') };
-    if (!validTiming(timing)) { flash('Check the timing. The talk lasts 1 to 120 min. Voting lasts 0.25 to 120 min and opens before the talk ends.'); return; }
-    if (session?.mode === 'talk' && !session.applause && timing.length <= session.elapsed && !confirm('The new talk length is shorter than the time used. This ends the talk now. Continue?')) return;
-    act({ type: 'timing', ...timing });
+    const basis = snapshot && { roundId: snapshot.roundId, version: snapshot.version };
+    timingError = timingProblem(timing);
+    render();
+    if (timingError) { announce(timingHelp[timingError]); return; }
+    if (session?.mode === 'talk' && !session.applause && timing.length <= session.elapsed && !await ask('The new length has already passed. Saving ends the talk now.', 'Save and end talk')) return;
+    act({ type: 'timing', ...timing }, basis);
   }
 });
 

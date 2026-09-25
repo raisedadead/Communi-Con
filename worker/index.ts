@@ -198,7 +198,7 @@ export class Room extends Server<Env> {
       await this.ctx.storage.put('room', this.room);
       return json({ room: this.name }, 201);
     }
-    if (!this.room) return json({ error: 'No room has this code. Check the code on the stage screen.' }, 404);
+    if (!this.room) return json({ error: 'No event has this code.' }, 404);
     const peer = await this.peer(request);
     if (!peer) return json({ error: 'This co-chair link is not valid. Ask a co-chair for the current link.' }, 403);
     return json(this.snapshot(peer, this.participants()));
@@ -213,20 +213,20 @@ export class Room extends Server<Env> {
 
   async onMessage(connection: Connection<Peer>, message: WSMessage): Promise<void> {
     const fail = (text: string): void => connection.send(JSON.stringify({ type: 'error', message: text }));
-    if (!this.room || !connection.state || typeof message !== 'string' || message.length > 1024) { fail('Invalid request. Refresh and try again.'); return; }
+    if (!this.room || !connection.state || typeof message !== 'string' || message.length > 1024) { fail('Unable to send that. Reload the page.'); return; }
     let payload: Record<string, unknown>;
     try {
       const parsed: unknown = JSON.parse(message);
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error();
       payload = parsed as Record<string, unknown>;
-    } catch { fail('Invalid request. Refresh and try again.'); return; }
+    } catch { fail('Unable to send that. Reload the page.'); return; }
     const action = parseAction(payload.action);
-    if (payload.type !== 'action' || !action) { fail('Invalid action. Refresh and try again.'); return; }
+    if (payload.type !== 'action' || !action) { fail('Unable to send that. Reload the page.'); return; }
     const peer = connection.state;
     const vote = action.type === 'vote';
-    if ((vote && peer.role !== 'audience') || (!vote && peer.role !== 'admin')) { fail('Only a co-chair can control the talk.'); return; }
+    if ((vote && peer.role !== 'audience') || (!vote && peer.role !== 'admin')) { fail('Only a co-chair can run the talk.'); return; }
     if (payload.roundId !== this.room.roundId || (!vote && action.type !== 'speaker' && payload.version !== this.room.version)) {
-      fail('The talk changed. Check the screen and try again.');
+      fail('The talk changed. Try again.');
       this.send([connection]);
       return;
     }
@@ -280,14 +280,14 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname === '/api/rooms' && request.method === 'POST') {
-      if (!sameOrigin(request)) return json({ error: 'Open this page directly to create a room.' }, 403);
+      if (!sameOrigin(request)) return json({ error: 'Open /admin on this site to create a room.' }, 403);
       if (!env.ADMIN_PASSPHRASE?.trim()) {
         console.warn('Room creation denied: ADMIN_PASSPHRASE is not set');
         return json({ error: 'Room creation is not set up. Ask the organizer to set the event passphrase.' }, 503);
       }
       if (!await passphraseMatches(request, env.ADMIN_PASSPHRASE)) {
         console.warn('Room creation denied: wrong passphrase');
-        return json({ error: 'That passphrase is not correct. Check it and try again.' }, 403);
+        return json({ error: 'That passphrase is not correct.' }, 403);
       }
       const key = token();
       const body = JSON.stringify({ hostHash: await hash(key) });
@@ -319,7 +319,7 @@ export default {
     if (socket) {
       if (!roomPattern.test(socket[1]) || request.headers.get('Upgrade')?.toLowerCase() !== 'websocket') return json({ error: 'Not found.' }, 404);
       if (!sameOrigin(request)) return json({ error: 'Connection origin denied.' }, 403);
-      return (await routePartykitRequest(request, env)) || json({ error: 'Room not found.' }, 404);
+      return (await routePartykitRequest(request, env)) || json({ error: 'No event has this code.' }, 404);
     }
     if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/parties/')) return json({ error: 'Not found.' }, 404);
     return env.ASSETS.fetch(request);
