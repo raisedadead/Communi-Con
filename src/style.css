@@ -65,6 +65,43 @@ svg { width: 20px; height: 20px; flex: none; }
 .intro { display: grid; gap: 12px; padding: 8px 4px 0; }
 .display { font-size: 40px; line-height: 1.05; letter-spacing: -0.035em; }
 
+.bar:has(+ .landing) { max-width: 66rem; }
+.landing { display: grid; gap: 48px; max-width: 66rem; margin-inline: auto; padding: 4px max(16px, env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+.hero { display: grid; gap: 28px; }
+.pitch { display: grid; gap: 16px; justify-items: start; }
+.pitch .button { width: 100%; }
+.pitch .display { font-size: clamp(44px, 12vw, 76px); }
+.word { display: inline-block; }
+.hint { padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--card) 85%, transparent); color: var(--muted); font-size: 14px; }
+.lede { font-size: 18px; }
+.scene { position: relative; aspect-ratio: 5 / 4; overflow: hidden; border: 1px solid var(--line); border-radius: 24px; background: radial-gradient(ellipse 55% 45% at 50% 0%, rgb(211 248 106 / 0.16), transparent 70%), #1f2720; container-type: size; }
+.beam { position: absolute; inset: 0 18% 30%; background: linear-gradient(rgb(211 248 106 / 0.2), transparent 85%); clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); transform-origin: 50% 0; }
+.podium { position: absolute; inset-inline: 30%; inset-block-start: 29%; height: 4%; border-radius: 999px; background: #34401f; box-shadow: 0 0 6cqw rgb(211 248 106 / 0.3); }
+.speaker { position: absolute; inset-inline-start: 46%; inset-block-start: 13%; display: flex; align-items: flex-start; }
+.speaker svg { width: 10cqw; height: 10cqw; }
+.speaker path, .seat path { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+.scene .tag { margin-block-start: 7cqw; background: var(--lime); font-size: 3.2cqw; }
+.scene .live { position: absolute; inset-block-start: 4cqw; inset-inline-start: 4cqw; font-size: 2.8cqw; }
+.seat { position: absolute; inset-inline-start: var(--x); inset-block-start: var(--y); }
+.seat svg { width: 7cqw; height: 7cqw; rotate: var(--r); }
+.react, .clap-pop { position: absolute; inset-inline-start: var(--x); font-size: 6cqw; line-height: 1; opacity: 0; }
+.react { inset-block-start: 60%; }
+.clap-pop { inset-block-start: 34%; }
+.steps { display: grid; gap: 16px; }
+.steps ol { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.step { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; padding: 18px; border: 1px solid var(--line); border-radius: 20px; background: var(--card); }
+.step-icon { grid-row: span 2; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: #1f2720; font-size: 28px; }
+.step h3 { display: flex; align-items: center; gap: 8px; margin: 0; font: 600 18px/1.25 var(--display); }
+.step-number { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--lime); color: var(--ink); font-size: 13px; font-weight: 700; }
+.step p { color: var(--muted); font-size: 15px; }
+@media (min-width: 760px) {
+  .hero { grid-template-columns: 1fr 1.1fr; align-items: center; gap: 48px; padding-block-start: 24px; }
+  .pitch .button { width: auto; min-width: 16rem; }
+  .steps ol { grid-template-columns: repeat(3, 1fr); }
+  .step { grid-template-columns: 1fr; align-content: start; }
+  .step-icon { grid-row: auto; }
+}
+
 .state { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 600; }
 .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--lime); }
 .state[data-mood="paused"] .pulse { background: var(--warn); }
@@ -165,6 +202,11 @@ svg { width: 20px; height: 20px; flex: none; }
 
 @media (prefers-reduced-motion: no-preference) {
   .button:active:not(:disabled), .choice:active:not(:disabled) { scale: 0.96; }
+  .beam { animation: sway 7s ease-in-out infinite alternate; }
+  .speaker svg { animation: drift 2.4s ease-in-out infinite alternate; }
+  .seat svg { animation: wave 8s ease-in-out var(--w) infinite; }
+  .react { animation: float 6s cubic-bezier(0.22, 1, 0.36, 1) var(--d) infinite; }
+  .clap-pop { animation: applaud 8s cubic-bezier(0.22, 1, 0.36, 1) var(--w) infinite; }
   .ambient::before { animation: pan 140s linear infinite; }
   .glow { animation: roam 27s ease-in-out infinite alternate; }
   .g1 { animation-duration: 34s; animation-direction: alternate-reverse; }
@@ -194,6 +236,10 @@ svg { width: 20px; height: 20px; flex: none; }
 
 @keyframes pulse { 50% { opacity: 0.3; } }
 @keyframes pan { to { translate: 400px 400px; } }
+@keyframes sway { from { rotate: -5deg; } to { rotate: 5deg; } }
+@keyframes wave { 0%, 62%, 100% { translate: 0 0; scale: 1; } 68% { translate: 0 -3cqh; scale: 1.2; } 75% { translate: 0 0; scale: 1; } }
+@keyframes float { from { opacity: 0; translate: 0 0; scale: 0.6; } 12% { opacity: 1; scale: 1; } 75% { opacity: 0.9; } to { opacity: 0; translate: var(--dx) -36cqh; scale: 0.9; } }
+@keyframes applaud { 0%, 63% { opacity: 0; translate: 0 4cqh; scale: 0.4; } 68% { opacity: 1; translate: 0 0; scale: 1.15; } 80% { opacity: 1; translate: 0 -6cqh; scale: 1; } 90%, 100% { opacity: 0; translate: 0 -12cqh; } }
 @keyframes roam { 50% { translate: 14vw 8vh; scale: 1.2; } to { translate: -8vw 18vh; scale: 0.9; } }
 @keyframes wander { 25% { translate: 9vmin -6vmin; } 50% { translate: 17vmin 4vmin; } 75% { translate: 6vmin 11vmin; } to { translate: -7vmin 3vmin; } }
 @keyframes wander-back { 30% { translate: -11vmin 5vmin; } 60% { translate: -4vmin -10vmin; } to { translate: 9vmin -4vmin; } }
@@ -213,3 +259,9 @@ svg { width: 20px; height: 20px; flex: none; }
 @keyframes cheer { from { opacity: 0; scale: 0.5; translate: 0 0; rotate: 0deg; } 12% { opacity: 1; scale: 1; } 70% { opacity: 0.9; } to { opacity: 0; translate: 0 -75dvh; rotate: var(--r); } }
 @keyframes confetti { from { opacity: 0; scale: 0.4; translate: 0 0; rotate: 0deg; } 15% { opacity: 1; scale: 1; } to { opacity: 0; translate: var(--px) calc(var(--py) + 90px); rotate: var(--r); } }
 @keyframes rise { from { translate: 0 0; opacity: 0; } 15% { opacity: 1; } to { translate: 0 -110dvh; opacity: 0; } }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .step { animation: reveal linear both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
+  }
+}

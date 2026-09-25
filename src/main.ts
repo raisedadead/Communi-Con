@@ -2,6 +2,7 @@ import QRCode from 'qrcode';
 import { ambient } from './ambient';
 import { connectRoom } from './connection';
 import { crowd, cursor, syncCrowd } from './crowd';
+import { landing } from './landing';
 import type { RoomConnection } from './connection';
 import { ballotOpen, phaseOf, timeLabel, transition, validTiming, votingWindow } from './session';
 import type { Action, Opinion, Phase, Session, Timing } from './session';
@@ -210,7 +211,7 @@ function message(title: string, text: string, retry: boolean): string {
 function view(): string {
   if (fatal) return message('Unable to join', fatal, true);
   if (role === 'admin' && (!room || !key)) return setup();
-  if (!room) return `${header()}<main class="screen"><section class="card crowd-card">${crowd(36, false)}</section><section class="intro"><h1 class="display">The floor is yours.</h1><p>Scan the QR code on the stage screen to join.</p></section></main>`;
+  if (!room) return `${header()}${landing()}`;
   if (!session) return message('Connecting…', 'Joining the room.', false);
   return role === 'admin' ? admin(session) : role === 'stage' ? stage(session) : audience(session);
 }
