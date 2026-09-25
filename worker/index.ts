@@ -25,9 +25,14 @@ interface Peer {
   participant: string | null;
 }
 
-const roomPattern = /^[a-f0-9]{32}$/;
+const roomPattern = /^\d{8}$/;
 const tokenPattern = /^[a-f0-9]{64}$/;
 const reactionLimit = 12;
+
+function roomCode(): string {
+  const [value] = crypto.getRandomValues(new Uint32Array(1));
+  return value < 4_200_000_000 ? String(value % 100_000_000).padStart(8, '0') : roomCode();
+}
 
 function token(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
@@ -187,8 +192,8 @@ export class Room extends Server<Env> {
   async onRequest(request: Request): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname === '/initialize' && request.method === 'POST') {
-      if (this.room) return json({ error: 'Room already exists.' }, 409);
       const { hostHash } = await request.json<{ hostHash: string }>();
+      if (this.room) return json({ error: 'Room already exists.' }, 409);
       this.room = { hostHash, session: initialSession(), clockAt: Date.now(), roundId: crypto.randomUUID(), version: 0, votes: {} };
       await this.ctx.storage.put('room', this.room);
       return json({ room: this.name }, 201);
@@ -284,13 +289,17 @@ export default {
         console.warn('Room creation denied: wrong passphrase');
         return json({ error: 'That passphrase is not correct. Check it and try again.' }, 403);
       }
-      const room = crypto.randomUUID().replaceAll('-', '');
       const key = token();
-      const response = await env.ROOM.getByName(room).fetch(new Request('http://room/initialize', { method: 'POST', body: JSON.stringify({ hostHash: await hash(key) }) }));
-      if (response.status !== 201) return response;
-      return json({ room, key }, 201);
+      const body = JSON.stringify({ hostHash: await hash(key) });
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const room = roomCode();
+        const response = await env.ROOM.getByName(room).fetch(new Request('http://room/initialize', { method: 'POST', body }));
+        if (response.status === 201) return json({ room, key }, 201);
+        if (response.status !== 409) return response;
+      }
+      return json({ error: 'Unable to create a room. Try again.' }, 503);
     }
-    const bootstrap = url.pathname.match(/^\/api\/rooms\/([a-f0-9]{32})\/session$/);
+    const bootstrap = url.pathname.match(/^\/api\/rooms\/(\d{8})\/session$/);
     if (bootstrap && request.method === 'GET') {
       if (!roleOf(request)) return json({ error: 'Unknown screen.' }, 400);
       const headers = new Headers(request.headers);

@@ -14,7 +14,7 @@ Anonymous audience votes for community talks. The audience votes on phones. The 
 ## Run the event
 
 1. Open `/admin` on a phone. Enter the event passphrase. Tap **Create room**.
-1. Tap **Open stage screen**. Show that screen on the projector between talks. It shows the QR code for the audience and the name of the next speaker.
+1. Open the stage screen on the projector computer. Tap **Share stage link**, or type the address from the **Share** card into the browser, for example `communi-con.example.workers.dev/stage/12345678`. Show that screen between talks. It shows the QR code for the audience and the name of the next speaker.
 1. Tap **Share co-chair link** to give control to the other co-chairs.
 1. If necessary, change the values in **Timing** and tap **Save timing**. The values stay for the next talks.
 1. For each talk:
@@ -73,3 +73,4 @@ The project name must match `name` in `wrangler.jsonc`. The build image installs
 - One browser is one participant. There is no ticket check.
 - The passphrase controls who can create a room. The co-chair link controls who can run a room.
 - The co-chair link gives full control. Do not show it on the projector.
+- A room code has 8 digits. A person who guesses a code can open its stage screen and vote. Only the co-chair link gives control.

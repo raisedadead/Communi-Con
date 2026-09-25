@@ -51,6 +51,7 @@ svg { width: 20px; height: 20px; flex: none; }
 .screen { display: grid; gap: 16px; padding-block: 4px calc(24px + env(safe-area-inset-bottom)); }
 .card { display: grid; gap: 12px; padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: var(--card); }
 .quiet { color: var(--muted); font-size: 15px; }
+.address { display: block; margin-block-start: 4px; color: var(--text); font-size: 17px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .intro { display: grid; gap: 12px; padding: 8px 4px 0; }
 .display { font-size: 40px; line-height: 1.05; letter-spacing: -0.035em; }
 
