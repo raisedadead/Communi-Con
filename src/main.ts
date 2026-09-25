@@ -4,7 +4,7 @@ import { connectRoom } from './connection';
 import { crowd, syncCrowd } from './crowd';
 import { codeError, landing } from './landing';
 import type { RoomConnection } from './connection';
-import { ballotOpen, phaseOf, timeLabel, timingProblem, transition, votingWindow } from './session';
+import { ballotOpen, canNudge, phaseOf, timeLabel, timingProblem, transition, votingWindow } from './session';
 import type { Action, Opinion, Phase, Session, Timing } from './session';
 import type { Role, RoomSnapshot } from './protocol';
 import './style.css';
@@ -103,8 +103,8 @@ function button(action: string, label: string, options: { primary?: boolean; dis
   return `<button class="button${options.primary ? ' primary' : ''}" data-action="${action}" data-key="${action}"${disabled ? ' disabled' : ''}>${label}</button>`;
 }
 
-function nudgeButton(seconds: number, label: string): string {
-  return `<button class="button small" data-nudge="${seconds}" data-key="nudge${seconds}"${pending || !connected ? ' disabled' : ''}>${label}</button>`;
+function nudgeButton(current: Session, seconds: number, label: string): string {
+  return `<button class="button small" data-nudge="${seconds}" data-key="nudge${seconds}"${pending || !connected || !canNudge(current, seconds) ? ' disabled' : ''}>${label}</button>`;
 }
 
 function choice(value: Opinion, emoji: string, label: string, opinion: Opinion | null, open: boolean): string {
@@ -179,7 +179,7 @@ function admin(current: Session): string {
     const vote = phase === 'listening' || phase === 'closed' ? `${button('open', phase === 'closed' ? 'Open voting again' : 'Open voting now')}<p class="quiet">Voting stays open for ${minutes(Math.min(current.lasts, current.length - Math.floor(current.elapsed)))} min.</p>` : phase === 'voting' ? '<p class="closes-line" data-closes></p>' : '';
     controls = `${vote}${button('applause', 'Cue applause', { primary: canCue })}<p class="quiet">Shows on every screen.</p>${secondary}`;
   }
-  const adjust = phase === 'applause' ? '' : `<div class="adjust" role="group" aria-labelledby="adjust-title"><span class="quiet" id="adjust-title">Adjust the clock</span>${nudgeButton(-60, '−1 min')}${nudgeButton(60, '+1 min')}</div>`;
+  const adjust = phase === 'applause' ? '' : `<div class="adjust" role="group" aria-labelledby="adjust-title"><span class="quiet" id="adjust-title">Length of this talk</span>${nudgeButton(current, -60, '−1 min')}${nudgeButton(current, 60, '+1 min')}</div>`;
   const onAirLine = name ? `<p class="on-air-line"><span class="live">On air</span>${escape(name)}</p>` : '';
   const votes = `<section class="card" aria-labelledby="votes-title"><h2 id="votes-title">Votes</h2>${result('keep', 'Keep going')}${result('wrap', 'Wrap it up')}<p class="quiet" data-total></p><p class="quiet">Only the co-chairs see these totals.</p></section>`;
   const speaker = `<section class="card" aria-labelledby="speaker-title"><h2 id="speaker-title">Speaker</h2>${speakerForm('Name')}</section>`;
@@ -187,7 +187,8 @@ function admin(current: Session): string {
 }
 
 function timingCard(current: Session): string {
-  const field = (key: keyof Timing, label: string): string => `<label class="timing-row"><span>${label}</span><input class="input" name="${key}" inputmode="decimal" autocomplete="off" data-key="${key}" value="${minutes(current[key])}"${timingError === key ? ' aria-invalid="true" aria-describedby="timing-error"' : ''}><span class="quiet">min</span></label>`;
+  const saved: Timing = { length: current.planned, opensAt: current.opensAt, lasts: current.lasts };
+  const field = (key: keyof Timing, label: string): string => `<label class="timing-row"><span>${label}</span><input class="input" name="${key}" inputmode="decimal" autocomplete="off" data-key="${key}" value="${minutes(saved[key])}"${timingError === key ? ' aria-invalid="true" aria-describedby="timing-error"' : ''}><span class="quiet">min</span></label>`;
   const error = timingError ? `<p class="field-error" id="timing-error">${timingHelp[timingError]}</p>` : '';
   return `<section class="card" aria-labelledby="timing-title"><h2 id="timing-title">Timing</h2><form class="form" data-timing>${field('length', 'Talk length')}${field('opensAt', 'Voting opens at')}${field('lasts', 'Voting lasts')}${error}<button class="button small" data-key="save-timing"${pending || !connected ? ' disabled' : ''}>Save timing</button></form><p class="quiet">Applies now and to the next talks.</p></section>`;
 }
@@ -357,7 +358,7 @@ function start(): void {
   if (role === 'stage') void QRCode.toString(links.audience(), { type: 'svg', margin: 4, color: { dark: '#000000', light: '#ffffff' } }).then(svg => { qr = svg; render(); });
   connection = connectRoom(room, role, key, {
     state(next): void {
-      if (snapshot && (['length', 'opensAt', 'lasts'] as const).some(field => next.session[field] !== snapshot!.session[field])) timingError = null;
+      if (snapshot && (['planned', 'opensAt', 'lasts'] as const).some(field => next.session[field] !== snapshot!.session[field])) timingError = null;
       if (role === 'admin' && !snapshot) localStorage.setItem('cc-room', room);
       const answered = !snapshot || next.version !== snapshot.version || next.roundId !== snapshot.roundId || (pendingVote !== null && next.opinion === pendingVote);
       const sameRound = snapshot && next.version === snapshot.version && next.roundId === snapshot.roundId;
@@ -482,7 +483,7 @@ root.addEventListener('submit', async event => {
     timingError = timingProblem(timing);
     render();
     if (timingError) { announce(timingHelp[timingError]); return; }
-    if (session?.mode === 'talk' && !session.applause && timing.length <= session.elapsed && !await ask('The new length has already passed. Saving ends the talk now.', 'Save and end talk')) return;
+    if (session?.mode === 'talk' && !session.applause && timing.length !== session.planned && timing.length <= session.elapsed && !await ask('The new length has already passed. Saving ends the talk now.', 'Save and end talk')) return;
     act({ type: 'timing', ...timing }, basis);
   }
 });

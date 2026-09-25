@@ -103,7 +103,7 @@ export class Room extends Server<Env> {
 
   async onStart(): Promise<void> {
     this.room = await this.ctx.storage.get<RoomRecord>('room');
-    if (this.room) this.room.session = { ...initialSession(), ...this.room.session };
+    if (this.room) this.room.session = { ...initialSession(), ...this.room.session, planned: this.room.session.planned ?? this.room.session.length };
   }
 
   private current(): Session {

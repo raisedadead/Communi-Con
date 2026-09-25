@@ -23,7 +23,7 @@ Anonymous live votes for community talks. The audience votes on phones. The co-c
    1. Tap **Cue applause** to end the talk.
    1. Tap **Next talk**. This clears the votes and the speaker name.
 
-If you tap **Start talk** late, tap **+1 min** to correct the clock. To rehearse the phases, tap **Open voting now** or **+1 min**.
+Tap **−1 min** or **+1 min** to make the current talk 1 minute shorter or longer. The next talk uses the length in **Timing**. To rehearse the phases, tap **Open voting now**.
 
 ## Set the passphrase
 
