@@ -20,7 +20,7 @@ function scene(): string {
   const seats = [0, 1, 2].flatMap(row => Array.from({ length: row % 2 ? 6 : 7 }, (_, column) => seat(row, column))).join('');
   const floats = reactions.map((emoji, index) => `<span class="react" style="--x:${12 + ((index * 0.618) % 1) * 72}%;--d:${index}s;--dx:${((index % 3) - 1) * 4}cqw">${emoji}</span>`).join('');
   const claps = [38, 50, 62].map((x, index) => `<span class="clap-pop" style="--x:${x}%;--w:${index * 120}ms">👏</span>`).join('');
-  return `<div class="scene" aria-hidden="true"><span class="beam"></span><span class="podium"></span><span class="speaker">${cursor('#d3f86a')}<span class="tag">On stage</span></span><span class="live">On air</span>${seats}${floats}${claps}</div>`;
+  return `<div class="scene" aria-hidden="true"><span class="beam"></span><span class="podium"></span><span class="presenter">${cursor('#d3f86a')}<span class="tag">On stage</span></span><span class="live">On air</span>${seats}${floats}${claps}</div>`;
 }
 
 export function landing(): string {

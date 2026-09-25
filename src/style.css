@@ -74,12 +74,13 @@ svg { width: 20px; height: 20px; flex: none; }
 .word { display: inline-block; }
 .hint { padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--card) 85%, transparent); color: var(--muted); font-size: 14px; }
 .lede { font-size: 18px; }
+.display, .lede, .pitch > .quiet, .intro p, .steps > h2, .stage-name, .stage-line, .stage-host { text-shadow: 0 0 12px var(--page), 0 0 3px var(--page); }
 .scene { position: relative; aspect-ratio: 5 / 4; overflow: hidden; border: 1px solid var(--line); border-radius: 24px; background: radial-gradient(ellipse 55% 45% at 50% 0%, rgb(211 248 106 / 0.16), transparent 70%), #1f2720; container-type: size; }
 .beam { position: absolute; inset: 0 18% 30%; background: linear-gradient(rgb(211 248 106 / 0.2), transparent 85%); clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); transform-origin: 50% 0; }
 .podium { position: absolute; inset-inline: 30%; inset-block-start: 29%; height: 4%; border-radius: 999px; background: #34401f; box-shadow: 0 0 6cqw rgb(211 248 106 / 0.3); }
-.speaker { position: absolute; inset-inline-start: 46%; inset-block-start: 13%; display: flex; align-items: flex-start; }
-.speaker svg { width: 10cqw; height: 10cqw; }
-.speaker path, .seat path { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+.presenter { position: absolute; inset-inline-start: 46%; inset-block-start: 13%; display: flex; align-items: flex-start; }
+.presenter svg { width: 10cqw; height: 10cqw; }
+.presenter path, .seat path { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
 .scene .tag { margin-block-start: 7cqw; background: var(--lime); font-size: 3.2cqw; }
 .scene .live { position: absolute; inset-block-start: 4cqw; inset-inline-start: 4cqw; font-size: 2.8cqw; }
 .seat { position: absolute; inset-inline-start: var(--x); inset-block-start: var(--y); }
@@ -203,7 +204,7 @@ svg { width: 20px; height: 20px; flex: none; }
 @media (prefers-reduced-motion: no-preference) {
   .button:active:not(:disabled), .choice:active:not(:disabled) { scale: 0.96; }
   .beam { animation: sway 7s ease-in-out infinite alternate; }
-  .speaker svg { animation: drift 2.4s ease-in-out infinite alternate; }
+  .presenter svg { animation: drift 2.4s ease-in-out infinite alternate; }
   .seat svg { animation: wave 8s ease-in-out var(--w) infinite; }
   .react { animation: float 6s cubic-bezier(0.22, 1, 0.36, 1) var(--d) infinite; }
   .clap-pop { animation: applaud 8s cubic-bezier(0.22, 1, 0.36, 1) var(--w) infinite; }
