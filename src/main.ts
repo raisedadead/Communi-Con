@@ -16,7 +16,7 @@ const [, screen = '', slug = ''] = location.pathname.split('/');
 const role: Role = screen === 'admin' ? 'admin' : screen === 'stage' ? 'stage' : 'audience';
 const roomPattern = /^\d{8}$/;
 
-let room = slug || new URLSearchParams(location.search).get('room') || '';
+let room = (slug || new URLSearchParams(location.search).get('room') || '').replaceAll('-', '');
 let key = '';
 let snapshot: RoomSnapshot | undefined;
 let session: Session | undefined;
@@ -38,7 +38,7 @@ let noticeTimer: ReturnType<typeof setTimeout> | undefined;
 
 const links = {
   audience: (): string => `${location.origin}/?room=${room}`,
-  stage: (): string => `${location.origin}/stage/${room}`,
+  stage: (): string => `${location.origin}/stage/${room.slice(0, 4)}-${room.slice(4)}`,
   admin: (): string => `${location.origin}/admin?room=${room}#key=${key}`,
 };
 
@@ -153,7 +153,7 @@ function speakerForm(label: string): string {
 }
 
 function shareCard(): string {
-  return `<section class="card" aria-labelledby="share-title"><h2 id="share-title">Share</h2><a class="button" href="${escape(links.stage())}" target="_blank" rel="noopener">Open stage screen${icon('external')}</a><button class="button" data-share="stage" data-key="share-stage">Share stage link</button><p class="quiet">Or type this address on the projector computer: <strong class="address">${escape(location.host)}<wbr>${escape(`/stage/${room}`)}</strong></p><button class="button" data-share="audience" data-key="share-audience">Share audience link</button><button class="button" data-share="admin" data-key="share-admin">Share co-chair link</button><p class="quiet">Anyone with the co-chair link can control the talk and see the votes.</p></section>`;
+  return `<section class="card" aria-labelledby="share-title"><h2 id="share-title">Share</h2><a class="button" href="${escape(links.stage())}" target="_blank" rel="noopener">Open stage screen${icon('external')}</a><button class="button" data-share="stage" data-key="share-stage">Share stage link</button><p class="quiet">Or type this address on the projector computer: <strong class="address">${escape(location.host)}<wbr>${escape(links.stage().slice(location.origin.length))}</strong></p><button class="button" data-share="audience" data-key="share-audience">Share audience link</button><button class="button" data-share="admin" data-key="share-admin">Share co-chair link</button><p class="quiet">Anyone with the co-chair link can control the talk and see the votes.</p></section>`;
 }
 
 function admin(current: Session): string {
