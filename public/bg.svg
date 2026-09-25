@@ -4,19 +4,19 @@
     <circle cx="168" cy="44" r="6" fill="#3d3028"/>
     <path d="M300 34v20M290 44h20" stroke="#332f42" stroke-width="4"/>
     <circle cx="352" cy="118" r="11" stroke="#2b3628" stroke-width="3"/>
-    <path d="M96 118a15 15 0 0 1 30 0Z" fill="#332f42"/>
-    <rect x="226" y="104" width="12" height="12" rx="2" transform="rotate(20 232 110)" fill="#34401f"/>
+    <path d="M4 1h16a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-9l-5 4v-4H4a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3Z" transform="translate(94 100) rotate(-6) scale(1.3)" fill="#332f42"/>
+    <path d="M12 20s-8-5-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15 12 20 12 20Z" transform="translate(220 96) rotate(12)" fill="#34401f"/>
     <path d="M22 206q10-12 20 0t20 0 20 0" stroke="#3d3028" stroke-width="3"/>
     <path d="m5 3 2 17 5-6 7-2L5 3Z" transform="translate(168 176) rotate(24) scale(1.2)" fill="#332f42"/>
     <circle cx="300" cy="214" r="3" fill="#34401f"/>
     <path d="M250 262h16" stroke="#34401f" stroke-width="4"/>
     <circle cx="70" cy="300" r="9" stroke="#332f42" stroke-width="3"/>
     <path d="m5 3 2 17 5-6 7-2L5 3Z" transform="translate(330 280) rotate(-32) scale(1.3)" fill="#3d3028"/>
-    <path d="M150 330l10-16 10 16Z" fill="#2b3628"/>
+    <path d="M4 1h16a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-9l-5 4v-4H4a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3Z" transform="translate(146 312) rotate(8) scale(1.1)" stroke="#2b3628" stroke-width="2.5"/>
     <path d="M226 354q8-10 16 0t16 0" stroke="#2b3628" stroke-width="3"/>
     <circle cx="370" cy="372" r="4" fill="#3d3028"/>
     <path d="M40 368v14M33 375h14" stroke="#34401f" stroke-width="3"/>
     <circle cx="120" cy="250" r="3" fill="#3d3028"/>
-    <rect x="88" y="30" width="10" height="10" rx="2" transform="rotate(-18 93 35)" fill="#332f42"/>
+    <path d="M12 20s-8-5-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15 12 20 12 20Z" transform="translate(84 26) rotate(-16) scale(0.7)" fill="#3d3028"/>
   </g>
 </svg>

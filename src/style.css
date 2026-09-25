@@ -28,7 +28,17 @@
 }
 
 * { box-sizing: border-box; }
-body { min-height: 100dvh; margin: 0; background: var(--page) url('/bg.svg') 0 0 / 400px 400px; }
+body { min-height: 100dvh; margin: 0; }
+.ambient { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.ambient::before { content: ''; position: absolute; inset: -400px 0 0 -400px; background: url('/bg.svg') 0 0 / 400px 400px; }
+.glow { position: absolute; width: 80vmax; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 14%, transparent), transparent); }
+.g0 { inset-block-start: -40vmax; inset-inline-start: -30vmax; }
+.g1 { inset-block-start: 10vh; inset-inline-end: -45vmax; }
+.g2 { inset-block-end: -50vmax; inset-inline-start: 0; }
+.walker { position: absolute; inset-inline-start: var(--x); inset-block-start: var(--y); display: flex; align-items: flex-start; opacity: 0.5; }
+.walker svg { width: clamp(16px, 3vmin, 44px); height: clamp(16px, 3vmin, 44px); rotate: var(--r); }
+.walker path { stroke: var(--page); stroke-width: 1.5; stroke-linejoin: round; }
+.tag { margin: 0.9em 0 0 -0.2em; padding: 0 0.45em; border-radius: 0.4em; background: var(--c); color: var(--ink); font: 700 clamp(10px, 1.7vmin, 24px)/1.5 var(--display); }
 h1, h2, p { margin: 0; }
 h1, h2 { font-family: var(--display); line-height: 1.15; text-wrap: balance; }
 p { line-height: 1.5; text-wrap: pretty; }
@@ -150,10 +160,18 @@ svg { width: 20px; height: 20px; flex: none; }
 .confetti { position: absolute; width: var(--w); height: var(--h); margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); border-radius: var(--br); background: var(--c); animation: confetti 900ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 .notice { pointer-events: none; position: fixed; inset-inline: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); max-width: 28rem; margin-inline: auto; padding: 14px 16px; border-radius: 12px; background: var(--text); color: var(--ink); font-size: 15px; }
+@media (forced-colors: active) { .ambient { display: none; } }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 @media (prefers-reduced-motion: no-preference) {
   .button:active:not(:disabled), .choice:active:not(:disabled) { scale: 0.96; }
+  .ambient::before { animation: pan 140s linear infinite; }
+  .glow { animation: roam 27s ease-in-out infinite alternate; }
+  .g1 { animation-duration: 34s; animation-direction: alternate-reverse; }
+  .g2 { animation-duration: 41s; }
+  .walker { animation: wander var(--t) ease-in-out var(--d) infinite alternate; }
+  .w1 { animation-name: wander-back; }
+  .w2 { animation-name: wander-round; }
   .state[data-mood="open"] .pulse { animation: pulse 1.6s ease-out infinite; }
   .peer { animation: drift 5s ease-in-out var(--d) infinite alternate; }
   .peer.fresh { animation: arrive 500ms cubic-bezier(0.2, 0, 0, 1) both, drift 5s ease-in-out 500ms infinite alternate; }
@@ -175,6 +193,11 @@ svg { width: 20px; height: 20px; flex: none; }
 }
 
 @keyframes pulse { 50% { opacity: 0.3; } }
+@keyframes pan { to { translate: 400px 400px; } }
+@keyframes roam { 50% { translate: 14vw 8vh; scale: 1.2; } to { translate: -8vw 18vh; scale: 0.9; } }
+@keyframes wander { 25% { translate: 9vmin -6vmin; } 50% { translate: 17vmin 4vmin; } 75% { translate: 6vmin 11vmin; } to { translate: -7vmin 3vmin; } }
+@keyframes wander-back { 30% { translate: -11vmin 5vmin; } 60% { translate: -4vmin -10vmin; } to { translate: 9vmin -4vmin; } }
+@keyframes wander-round { 20% { translate: 7vmin 8vmin; } 55% { translate: -10vmin 12vmin; } to { translate: -13vmin -3vmin; } }
 @keyframes drift { to { translate: 0 -6px; } }
 @keyframes arrive { from { opacity: 0; scale: 0.25; } }
 @keyframes clap { to { scale: 1.12; rotate: -6deg; } }

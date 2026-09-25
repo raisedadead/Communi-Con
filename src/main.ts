@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import { ambient } from './ambient';
 import { connectRoom } from './connection';
 import { crowd, cursor, syncCrowd } from './crowd';
 import type { RoomConnection } from './connection';
@@ -451,6 +452,7 @@ if (role === 'admin') {
   key = room ? localStorage.getItem(`cc-key:${room}`) || '' : '';
 }
 document.body.dataset.role = role;
+document.body.insertAdjacentHTML('afterbegin', `<div class="ambient" aria-hidden="true">${ambient()}</div>`);
 document.title = { audience: 'Communi-Con', stage: 'Stage · Communi-Con', admin: 'Co-chair · Communi-Con' }[role];
 setInterval(tick, 250);
 if (room && (role !== 'admin' || key)) start();
