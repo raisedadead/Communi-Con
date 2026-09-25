@@ -69,12 +69,13 @@ svg { width: 20px; height: 20px; flex: none; }
 .landing { display: grid; gap: 48px; max-width: 66rem; margin-inline: auto; padding: 4px max(16px, env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
 .hero { display: grid; gap: 28px; }
 .pitch { display: grid; gap: 16px; justify-items: start; }
-.pitch .button { width: 100%; }
+.pitch .inline-form { width: 100%; max-width: 26rem; }
+.inline-form .field-error { grid-column: 1 / -1; }
 .pitch .display { font-size: clamp(44px, 12vw, 76px); }
 .word { display: inline-block; }
 .hint { padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--card) 85%, transparent); color: var(--muted); font-size: 14px; }
 .lede { font-size: 18px; }
-.display, .lede, .pitch > .quiet, .intro p, .steps > h2, .stage-name, .stage-line, .stage-host { text-shadow: 0 0 12px var(--page), 0 0 3px var(--page); }
+.display, .lede, .pitch label, .pitch .field-error, .intro p, .steps > h2, .stage-name, .stage-line, .stage-host { text-shadow: 0 0 12px var(--page), 0 0 3px var(--page); }
 .scene { position: relative; aspect-ratio: 5 / 4; overflow: hidden; border: 1px solid var(--line); border-radius: 24px; background: radial-gradient(ellipse 55% 45% at 50% 0%, rgb(211 248 106 / 0.16), transparent 70%), #1f2720; container-type: size; }
 .beam { position: absolute; inset: 0 18% 30%; background: linear-gradient(rgb(211 248 106 / 0.2), transparent 85%); clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); transform-origin: 50% 0; }
 .podium { position: absolute; inset-inline: 30%; inset-block-start: 29%; height: 4%; border-radius: 999px; background: #34401f; box-shadow: 0 0 6cqw rgb(211 248 106 / 0.3); }
@@ -97,7 +98,6 @@ svg { width: 20px; height: 20px; flex: none; }
 .step p { color: var(--muted); font-size: 15px; }
 @media (min-width: 760px) {
   .hero { grid-template-columns: 1fr 1.1fr; align-items: center; gap: 48px; padding-block-start: 24px; }
-  .pitch .button { width: auto; min-width: 16rem; }
   .steps ol { grid-template-columns: repeat(3, 1fr); }
   .step { grid-template-columns: 1fr; align-content: start; }
   .step-icon { grid-row: auto; }
@@ -178,14 +178,22 @@ svg { width: 20px; height: 20px; flex: none; }
 .burst { display: none; }
 
 .stage { position: relative; display: flex; flex-wrap: wrap; align-items: center; align-content: center; justify-content: center; gap: 4vmin 6vmin; min-height: 100dvh; padding: max(9vmin, 60px) 4vmin; text-align: center; }
-.qr { width: min(86vw, 72vh); aspect-ratio: 1; border-radius: 2vmin; overflow: hidden; background: #fff; }
+.qr { flex: none; width: min(86vw, 36vh); aspect-ratio: 1; border-radius: 2vmin; overflow: hidden; background: #fff; }
 .qr svg { display: block; width: 100%; height: 100%; }
-.stage-text { display: grid; justify-items: center; gap: 2vmin; }
+.stage-text { display: grid; justify-items: center; gap: 2vmin; min-width: 0; }
 .stage-text .live { font-size: clamp(12px, 2.4vmin, 28px); }
 .stage-name { max-width: 14ch; font-family: var(--display); font-size: clamp(36px, 10vmin, 130px); font-weight: 700; line-height: 1; letter-spacing: -0.04em; overflow-wrap: anywhere; text-wrap: balance; }
 .stage-line { max-width: 18ch; margin-inline: auto; font-size: clamp(24px, 6vmin, 80px); font-weight: 700; line-height: 1.15; text-wrap: balance; }
 .stage-time { font-family: var(--display); font-size: clamp(56px, 18vmin, 220px); font-weight: 700; line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
-.stage-host { position: absolute; inset-block-end: 2.5vmin; inset-inline-end: 3vmin; max-width: 60vw; overflow-wrap: anywhere; color: var(--muted); font-size: clamp(13px, 2vmin, 26px); text-align: end; }
+.stage-host { position: absolute; inset-block-end: 2.5vmin; inset-inline-end: 3vmin; max-width: 60vw; overflow-wrap: anywhere; color: var(--muted); font-size: clamp(14px, 2.8vmin, 36px); text-align: end; }
+.stage-host strong { color: var(--text); font-variant-numeric: tabular-nums; }
+@media (orientation: landscape) {
+  .stage { flex-wrap: nowrap; }
+  .qr { width: min(72vh, 44vw); }
+  .stage-text { flex: 1; container-type: inline-size; }
+  .stage-name { font-size: min(10vmin, 13cqi); }
+  .stage-time { font-size: min(18vmin, 30cqi); }
+}
 .stage-count { position: absolute; inset-block-start: 3vmin; inset-inline-end: 3vmin; }
 .stage-count .people svg { width: clamp(28px, 5vmin, 64px); height: clamp(28px, 5vmin, 64px); }
 .stage-count .badge { inset-block-start: -1.6vmin; inset-inline-start: 72%; min-width: clamp(22px, 3.6vmin, 46px); height: clamp(22px, 3.6vmin, 46px); padding-inline: 0.8vmin; border-radius: 999px; font-size: clamp(13px, 2.2vmin, 28px); line-height: clamp(22px, 3.6vmin, 46px); }

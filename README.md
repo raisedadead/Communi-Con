@@ -14,7 +14,7 @@ Anonymous audience votes for community talks. The audience votes on phones. The 
 ## Run the event
 
 1. Open `/admin` on a phone. Enter the event passphrase. Tap **Create room**.
-1. Open the stage screen on the projector computer. Tap **Share stage link**, or type the address from the **Share** card into the browser, for example `communi-con.example.workers.dev/stage/1234-5678`. Show that screen between talks. It shows the QR code for the audience and the name of the next speaker.
+1. Open the stage screen on the projector computer. Tap **Share stage link**, or type the address from the **Share** card into the browser, for example `communi-con.example.workers.dev/stage/1234-5678`. Show that screen between talks. It shows the QR code for the audience, the event code, and the name of the next speaker. A person who cannot scan the QR code opens the site and enters the event code.
 1. Tap **Share co-chair link** to give control to the other co-chairs.
 1. If necessary, change the values in **Timing** and tap **Save timing**. The values stay for the next talks.
 1. For each talk:

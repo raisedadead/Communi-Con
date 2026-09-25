@@ -198,7 +198,7 @@ export class Room extends Server<Env> {
       await this.ctx.storage.put('room', this.room);
       return json({ room: this.name }, 201);
     }
-    if (!this.room) return json({ error: 'This room does not exist. Scan the QR code again.' }, 404);
+    if (!this.room) return json({ error: 'No room has this code. Check the code on the stage screen.' }, 404);
     const peer = await this.peer(request);
     if (!peer) return json({ error: 'This co-chair link is not valid. Ask a co-chair for the current link.' }, 403);
     return json(this.snapshot(peer, this.participants()));

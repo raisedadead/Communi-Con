@@ -2,7 +2,7 @@ import QRCode from 'qrcode';
 import { ambient } from './ambient';
 import { connectRoom } from './connection';
 import { crowd, cursor, syncCrowd } from './crowd';
-import { landing } from './landing';
+import { codeError, landing } from './landing';
 import type { RoomConnection } from './connection';
 import { ballotOpen, phaseOf, timeLabel, transition, validTiming, votingWindow } from './session';
 import type { Action, Opinion, Phase, Session, Timing } from './session';
@@ -29,6 +29,7 @@ let pendingVote: Opinion | null = null;
 let notice = '';
 let formError = '';
 let fatal = '';
+let final = false;
 let qr = '';
 let shown = '';
 let lastPhase: Phase | undefined;
@@ -38,9 +39,10 @@ let connection: RoomConnection | undefined;
 let pendingTimer: ReturnType<typeof setTimeout> | undefined;
 let noticeTimer: ReturnType<typeof setTimeout> | undefined;
 
+const code = (): string => `${room.slice(0, 4)}-${room.slice(4)}`;
 const links = {
   audience: (): string => `${location.origin}/?room=${room}`,
-  stage: (): string => `${location.origin}/stage/${room.slice(0, 4)}-${room.slice(4)}`,
+  stage: (): string => `${location.origin}/stage/${code()}`,
   admin: (): string => `${location.origin}/admin?room=${room}#key=${key}`,
 };
 
@@ -147,7 +149,7 @@ function stage(current: Session): string {
   const tag = phase === 'lobby' ? '<span class="live next">Up next</span>' : '<span class="live">On air</span>';
   const who = name ? `<p data-enter="tag-${phase === 'lobby'}">${tag}</p><p class="stage-name" data-enter="stage-${escape(name)}" style="--i:1">${escape(name)}</p>` : '';
   const time = phase === 'lobby' ? '' : '<p class="stage-time" role="timer" data-clock></p>';
-  return `<main class="stage"><div class="qr" role="img" aria-label="QR code for ${escape(links.audience())}">${qr}</div><div class="stage-text">${who}<h1 class="stage-line" data-enter="line-${line}" style="--i:2">${line}</h1>${time}</div><p class="stage-count">${people()}</p><p class="stage-host">${escape(location.host)}</p></main>`;
+  return `<main class="stage"><div class="qr" role="img" aria-label="QR code for ${escape(links.audience())}">${qr}</div><div class="stage-text">${who}<h1 class="stage-line" data-enter="line-${line}" style="--i:2">${line}</h1>${time}</div><p class="stage-count">${people()}</p><p class="stage-host">No camera? Go to <strong>${escape(location.host)}</strong> and enter <strong>${code()}</strong></p></main>`;
 }
 
 function speakerForm(label: string): string {
@@ -204,15 +206,20 @@ function setup(): string {
   return `${header('Co-chair')}<main class="screen"><section class="card"><h1>Set up the room</h1><p>Create one room for the event. Put its stage screen on the projector, and keep this page open to run each talk.</p>${resume}<form class="form" data-create>${field}${submit}</form>${saved ? '<p class="quiet">A new room has a new QR code. Phones on the old room do not move.</p>' : ''}</section></main>`;
 }
 
-function message(title: string, text: string, retry: boolean): string {
-  return `${header()}<main class="screen"><section class="card"><h1>${escape(title)}</h1><p>${escape(text)}</p>${retry ? '<button class="button primary" data-retry data-key="retry">Try again</button>' : ''}</section></main>`;
+function message(title: string, text: string, action = ''): string {
+  return `${header()}<main class="screen"><section class="card"><h1>${escape(title)}</h1><p>${escape(text)}</p>${action}</section></main>`;
+}
+
+function recovery(): string {
+  if (!final) return '<button class="button primary" data-retry data-key="retry">Try again</button>';
+  return role === 'audience' ? '<a class="button primary" href="/">Enter the code</a>' : '';
 }
 
 function view(): string {
-  if (fatal) return message('Unable to join', fatal, true);
+  if (fatal) return message('Unable to join', fatal, recovery());
   if (role === 'admin' && (!room || !key)) return setup();
-  if (!room) return `${header()}${landing()}`;
-  if (!session) return message('Connecting…', 'Joining the room.', false);
+  if (!room) return `${header()}${landing(formError !== '')}`;
+  if (!session) return message('Connecting…', 'Joining the room.');
   return role === 'admin' ? admin(session) : role === 'stage' ? stage(session) : audience(session);
 }
 
@@ -343,7 +350,8 @@ function start(): void {
   session = undefined;
   connected = false;
   fatal = '';
-  if (!roomPattern.test(room)) { fatal = 'This link is incomplete. Scan the QR code on the stage screen again.'; render(); return; }
+  final = false;
+  if (!roomPattern.test(room)) { final = true; fatal = 'This link is incomplete. Scan the QR code on the stage screen again.'; render(); return; }
   if (role === 'stage') void QRCode.toString(links.audience(), { type: 'svg', margin: 4, color: { dark: '#000000', light: '#ffffff' } }).then(svg => { qr = svg; render(); });
   connection = connectRoom(room, role, key, {
     state(next): void {
@@ -365,10 +373,12 @@ function start(): void {
       if (!value) settle();
       render();
     },
-    error(text, stop): void {
+    error(text, kind): void {
       settle();
-      if (stop) { fatal = text; render(); }
-      else flash(text);
+      if (kind === 'notice') { flash(text); return; }
+      fatal = text;
+      final = kind === 'final';
+      render();
     },
   });
   render();
@@ -399,6 +409,14 @@ async function create(passphrase: string): Promise<void> {
     pending = false;
     flash('Unable to create a room. Check your connection and try again.');
   }
+}
+
+function join(value: string): void {
+  const digits = value.replace(/\D/g, '');
+  if (roomPattern.test(digits)) { location.assign(`/?room=${digits}`); return; }
+  formError = codeError;
+  announce(formError);
+  render();
 }
 
 async function share(kind: 'audience' | 'stage' | 'admin'): Promise<void> {
@@ -432,6 +450,7 @@ root.addEventListener('submit', event => {
   event.preventDefault();
   if (!(event.target instanceof HTMLFormElement)) return;
   if (event.target.hasAttribute('data-create') && !pending) void create(String(new FormData(event.target).get('passphrase')));
+  if (event.target.hasAttribute('data-join')) join(String(new FormData(event.target).get('code')));
   if (event.target.hasAttribute('data-speaker')) act({ type: 'speaker', name: String(new FormData(event.target).get('speaker')) });
   if (event.target.hasAttribute('data-timing')) {
     const form = new FormData(event.target);
