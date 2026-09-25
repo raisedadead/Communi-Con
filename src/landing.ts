@@ -1,5 +1,3 @@
-import { cursor } from './crowd';
-
 const colors = ['#83ac87', '#b9a5e4', '#f1ad75', '#d8e3c8'];
 const reactions = ['👏', '👍', '🙌', '💚', '👏', '✨'];
 const steps = [
@@ -11,16 +9,15 @@ const steps = [
 function seat(row: number, column: number): string {
   const x = 8 + (column + (row % 2) * 0.5) * 12;
   const y = 48 + row * 16;
-  const rotation = Math.atan2(50 - x, (y - 16) * 0.8) * (180 / Math.PI) + 32;
-  const style = `--x:${x.toFixed(1)}%;--y:${y}%;--r:${rotation.toFixed(0)}deg;--w:${column * 90 + row * 60}ms`;
-  return `<span class="seat" style="${style}">${cursor(colors[(row * 7 + column) % colors.length])}</span>`;
+  const style = `--x:${x.toFixed(1)}%;--y:${y}%;--w:${column * 90 + row * 60}ms;--c:${colors[(row * 7 + column) % colors.length]}`;
+  return `<span class="seat" style="${style}"></span>`;
 }
 
 function scene(): string {
   const seats = [0, 1, 2].flatMap(row => Array.from({ length: row % 2 ? 6 : 7 }, (_, column) => seat(row, column))).join('');
   const floats = reactions.map((emoji, index) => `<span class="react" style="--x:${12 + ((index * 0.618) % 1) * 72}%;--d:${index}s;--dx:${((index % 3) - 1) * 4}cqw">${emoji}</span>`).join('');
   const claps = [38, 50, 62].map((x, index) => `<span class="clap-pop" style="--x:${x}%;--w:${index * 120}ms">👏</span>`).join('');
-  return `<div class="scene" aria-hidden="true"><span class="beam"></span><span class="podium"></span><span class="presenter">${cursor('#d3f86a')}<span class="tag">On stage</span></span><span class="live">On air</span>${seats}${floats}${claps}</div>`;
+  return `<div class="scene" aria-hidden="true"><span class="beam"></span><span class="podium"></span><span class="presenter"><span class="tag">On stage</span></span><span class="live">On air</span>${seats}${floats}${claps}</div>`;
 }
 
 export const codeError = 'Enter the 8-digit code from the stage screen.';

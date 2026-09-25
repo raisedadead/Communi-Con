@@ -1,17 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
   <g stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="m5 3 2 17 5-6 7-2L5 3Z" transform="translate(28 24) rotate(-14) scale(1.4)" fill="#c3e858"/>
+    <circle cx="40" cy="38" r="8" fill="#c3e858"/>
     <circle cx="168" cy="44" r="6" fill="#e5ff9a"/>
     <path d="M300 34v20M290 44h20" stroke="#bde04f" stroke-width="4"/>
     <circle cx="352" cy="118" r="11" stroke="#c3e858" stroke-width="3"/>
     <path d="M96 118a15 15 0 0 1 30 0Z" fill="#bde04f"/>
     <rect x="226" y="104" width="12" height="12" rx="2" transform="rotate(20 232 110)" fill="#e5ff9a"/>
     <path d="M22 206q10-12 20 0t20 0 20 0" stroke="#e5ff9a" stroke-width="3"/>
-    <path d="m5 3 2 17 5-6 7-2L5 3Z" transform="translate(168 176) rotate(24) scale(1.2)" fill="#bde04f"/>
+    <circle cx="178" cy="190" r="7" fill="#bde04f"/>
     <circle cx="300" cy="214" r="3" fill="#e5ff9a"/>
     <path d="M250 262h16" stroke="#e5ff9a" stroke-width="4"/>
     <circle cx="70" cy="300" r="9" stroke="#bde04f" stroke-width="3"/>
-    <path d="m5 3 2 17 5-6 7-2L5 3Z" transform="translate(330 280) rotate(-32) scale(1.3)" fill="#e5ff9a"/>
+    <circle cx="340" cy="292" r="7.5" fill="#e5ff9a"/>
     <path d="M150 330l10-16 10 16Z" fill="#c3e858"/>
     <path d="M226 354q8-10 16 0t16 0" stroke="#c3e858" stroke-width="3"/>
     <circle cx="370" cy="372" r="4" fill="#e5ff9a"/>

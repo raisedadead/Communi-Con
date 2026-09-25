@@ -30,15 +30,13 @@
 * { box-sizing: border-box; }
 body { min-height: 100dvh; margin: 0; }
 .ambient { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.ambient::before { content: ''; position: absolute; inset: -400px 0 0 -400px; background: url('/bg.svg') 0 0 / 400px 400px; }
+.ambient::before { content: ''; position: absolute; inset: 0; background: url('/bg.svg') 0 0 / 400px 400px; }
 .glow { position: absolute; width: 80vmax; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 14%, transparent), transparent); }
 .g0 { inset-block-start: -40vmax; inset-inline-start: -30vmax; }
 .g1 { inset-block-start: 10vh; inset-inline-end: -45vmax; }
 .g2 { inset-block-end: -50vmax; inset-inline-start: 0; }
-.walker { position: absolute; inset-inline-start: var(--x); inset-block-start: var(--y); display: flex; align-items: flex-start; opacity: 0.5; }
-.walker svg { width: clamp(16px, 3vmin, 44px); height: clamp(16px, 3vmin, 44px); rotate: var(--r); }
-.walker path { stroke: var(--page); stroke-width: 1.5; stroke-linejoin: round; }
-.tag { margin: 0.9em 0 0 -0.2em; padding: 0 0.45em; border-radius: 0.4em; background: var(--c); color: var(--ink); font: 700 clamp(10px, 1.7vmin, 24px)/1.5 var(--display); }
+.wave { --band: max(40vw, 240px); position: absolute; inset: 0 auto 0 0; width: var(--band); overflow: hidden; translate: calc(-1 * var(--band)) 0; mask-image: linear-gradient(90deg, transparent, #000 40%, #000 60%, transparent); }
+.wave-tile { position: absolute; inset: -3px auto 3px 0; width: 100vw; background: url('/bg-wave.svg') 0 0 / 400px 400px; translate: var(--band) 0; }
 h1, h2, p { margin: 0; }
 h1, h2 { font-family: var(--display); line-height: 1.15; text-wrap: balance; }
 p { line-height: 1.5; text-wrap: pretty; }
@@ -79,13 +77,11 @@ svg { width: 20px; height: 20px; flex: none; }
 .scene { position: relative; aspect-ratio: 5 / 4; overflow: hidden; border: 1px solid var(--line); border-radius: 24px; background: radial-gradient(ellipse 55% 45% at 50% 0%, rgb(211 248 106 / 0.16), transparent 70%), #1f2720; container-type: size; }
 .beam { position: absolute; inset: 0 18% 30%; background: linear-gradient(rgb(211 248 106 / 0.2), transparent 85%); clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); transform-origin: 50% 0; }
 .podium { position: absolute; inset-inline: 30%; inset-block-start: 29%; height: 4%; border-radius: 999px; background: #34401f; box-shadow: 0 0 6cqw rgb(211 248 106 / 0.3); }
-.presenter { position: absolute; inset-inline-start: 46%; inset-block-start: 13%; display: flex; align-items: flex-start; }
-.presenter svg { width: 10cqw; height: 10cqw; }
-.presenter path, .seat path { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
-.scene .tag { margin-block-start: 7cqw; background: var(--lime); font-size: 3.2cqw; }
+.presenter { position: absolute; inset-inline-start: 46%; inset-block-start: 15%; display: flex; align-items: center; gap: 2cqw; }
+.presenter::before { content: ''; width: 8cqw; aspect-ratio: 1; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 0.5cqw var(--ink), 0 0 5cqw rgb(211 248 106 / 0.5); }
+.scene .tag { padding: 0 0.45em; border-radius: 0.4em; background: var(--lime); color: var(--ink); font: 700 3.2cqw/1.5 var(--display); }
 .scene .live { position: absolute; inset-block-start: 4cqw; inset-inline-start: 4cqw; font-size: 2.8cqw; }
-.seat { position: absolute; inset-inline-start: var(--x); inset-block-start: var(--y); }
-.seat svg { width: 7cqw; height: 7cqw; rotate: var(--r); }
+.seat { position: absolute; inset-inline-start: var(--x); inset-block-start: var(--y); width: 6cqw; aspect-ratio: 1; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 0.4cqw var(--ink); }
 .react, .clap-pop { position: absolute; inset-inline-start: var(--x); font-size: 6cqw; line-height: 1; opacity: 0; }
 .react { inset-block-start: 60%; }
 .clap-pop { inset-block-start: 34%; }
@@ -161,15 +157,11 @@ svg { width: 20px; height: 20px; flex: none; }
 
 .crowd-card { padding: 12px 12px 16px; }
 .crowd-card .quiet { padding-inline: 8px; }
-.crowd { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 12px; background: #1f2720 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Ccircle cx='11' cy='11' r='1.3' fill='%233a453a'/%3E%3C/svg%3E") 0 0 / 22px 22px; }
-.crowd svg { display: block; }
-.crowd path { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
-.peer { position: absolute; inset-inline-start: var(--x); inset-block-start: var(--y); rotate: var(--r); }
-.peer svg { width: 20px; height: 20px; }
-.you { position: absolute; inset-inline-start: 44%; inset-block-start: 40%; z-index: 1; }
-.you svg { width: 34px; height: 34px; rotate: -10deg; }
-.you path { stroke-width: 2.5; }
-.you-tag { position: absolute; inset-inline-start: 26px; inset-block-start: 34px; padding: 2px 8px; border-radius: 6px; background: var(--lime); color: var(--ink); font: 700 13px/1.4 var(--display); letter-spacing: 0.04em; text-transform: uppercase; }
+.crowd { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 12px; background: radial-gradient(ellipse 70% 60% at 50% 45%, rgb(211 248 106 / 0.07), transparent 70%), #1f2720; }
+.peer { position: absolute; inset-inline-start: var(--x); inset-block-start: var(--y); }
+.peer::before { content: ''; display: block; width: 14px; height: 14px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1.5px var(--ink); }
+.you { position: absolute; inset-inline-start: 44%; inset-block-start: 40%; z-index: 1; width: 24px; height: 24px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 2.5px var(--ink), 0 0 0 8px rgb(211 248 106 / 0.25); }
+.you-tag { position: absolute; inset-inline-start: 30px; inset-block-start: 22px; padding: 2px 8px; border-radius: 6px; background: var(--lime); color: var(--ink); font: 700 13px/1.4 var(--display); letter-spacing: 0.04em; text-transform: uppercase; }
 
 .cue { position: relative; display: grid; place-content: center; justify-items: center; gap: 16px; min-height: 100dvh; padding: 24px; overflow: hidden; background: var(--lime) url('/bg-lime.svg') 0 0 / 400px 400px; color: var(--ink); text-align: center; }
 .cue h1 { position: relative; font-size: clamp(44px, 13vw, 160px); line-height: 1; letter-spacing: -0.04em; }
@@ -209,32 +201,32 @@ svg { width: 20px; height: 20px; flex: none; }
 .ask::backdrop { background: rgb(0 0 0 / 0.6); }
 .ask p { margin: 0 0 16px; font-size: 17px; }
 .notice { pointer-events: none; position: fixed; inset-inline: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); max-width: 28rem; margin-inline: auto; padding: 14px 16px; border-radius: 12px; background: var(--text); color: var(--ink); font-size: 15px; }
-@media (forced-colors: active) { .ambient { display: none; } }
+@media (forced-colors: active) {
+  .ambient { display: none; }
+  .crowd, .scene, .burst { forced-color-adjust: none; }
+}
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 @media (prefers-reduced-motion: no-preference) {
   .button:active:not(:disabled), .choice:active:not(:disabled) { scale: 0.96; }
   .beam { animation: sway 7s ease-in-out infinite alternate; }
-  .presenter svg { animation: drift 2.4s ease-in-out infinite alternate; }
-  .seat svg { animation: wave 8s ease-in-out var(--w) infinite; }
+  .presenter::before { animation: drift 2.4s ease-in-out infinite alternate; }
+  .seat { animation: wave 8s ease-in-out var(--w) infinite; }
   .react { animation: float 6s cubic-bezier(0.22, 1, 0.36, 1) var(--d) infinite; }
   .clap-pop { animation: applaud 8s cubic-bezier(0.22, 1, 0.36, 1) var(--w) infinite; }
-  .ambient::before { animation: pan 140s linear infinite; }
+  .wave { animation: sweep 20s cubic-bezier(0.45, 0, 0.55, 1) 3s infinite; }
+  .wave-tile { animation: sweep-back 20s cubic-bezier(0.45, 0, 0.55, 1) 3s infinite; }
   .glow { animation: roam 27s ease-in-out infinite alternate; }
   .g1 { animation-duration: 34s; animation-direction: alternate-reverse; }
   .g2 { animation-duration: 41s; }
-  .walker { animation: wander var(--t) ease-in-out var(--d) infinite alternate; }
-  .w1 { animation-name: wander-back; }
-  .w2 { animation-name: wander-round; }
   .state[data-mood="open"] .pulse { animation: pulse 1.6s ease-out infinite; }
-  .peer { animation: drift 5s ease-in-out var(--d) infinite alternate; }
-  .peer.fresh { animation: arrive 500ms cubic-bezier(0.2, 0, 0, 1) both, drift 5s ease-in-out 500ms infinite alternate; }
+  .peer { animation: hop 20s ease-in-out var(--w) infinite; }
+  .peer::before { animation: drift 5s ease-in-out var(--d) infinite alternate; }
+  .peer.fresh { animation: arrive 500ms cubic-bezier(0.2, 0, 0, 1) both, hop 20s ease-in-out var(--w) infinite; }
   .you { animation: drift 3.5s ease-in-out infinite alternate; }
   .clap { animation: clap 700ms ease-in-out infinite alternate; }
   .burst { display: block; position: absolute; inset: 0; }
-  .rise { position: absolute; inset-inline-start: var(--x); bottom: -48px; animation: rise 3.2s cubic-bezier(0.2, 0, 0, 1) var(--d) infinite; }
-  .rise svg { width: 32px; height: 32px; }
-  .rise path { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+  .rise { position: absolute; inset-inline-start: var(--x); bottom: -48px; width: var(--s); aspect-ratio: 1; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 2px var(--ink); animation: rise 3.2s cubic-bezier(0.2, 0, 0, 1) var(--d) infinite; }
   .live:not(.next)::before { animation: pulse 1.6s ease-out infinite; }
   .enter { animation: reveal 500ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 60ms) both; }
   .state.enter { animation: swap 150ms ease-in-out both; }
@@ -247,15 +239,14 @@ svg { width: 20px; height: 20px; flex: none; }
 }
 
 @keyframes pulse { 50% { opacity: 0.3; } }
-@keyframes pan { to { translate: 400px 400px; } }
+@keyframes sweep { from { translate: calc(-1 * var(--band)) 0; } 22%, to { translate: 100vw 0; } }
+@keyframes sweep-back { from { translate: var(--band) 0; } 22%, to { translate: -100vw 0; } }
+@keyframes hop { 0%, 6%, 100% { translate: 0 0; } 3% { translate: 0 -7px; } }
 @keyframes sway { from { rotate: -5deg; } to { rotate: 5deg; } }
 @keyframes wave { 0%, 62%, 100% { translate: 0 0; scale: 1; } 68% { translate: 0 -3cqh; scale: 1.2; } 75% { translate: 0 0; scale: 1; } }
 @keyframes float { from { opacity: 0; translate: 0 0; scale: 0.6; } 12% { opacity: 1; scale: 1; } 75% { opacity: 0.9; } to { opacity: 0; translate: var(--dx) -36cqh; scale: 0.9; } }
 @keyframes applaud { 0%, 63% { opacity: 0; translate: 0 4cqh; scale: 0.4; } 68% { opacity: 1; translate: 0 0; scale: 1.15; } 80% { opacity: 1; translate: 0 -6cqh; scale: 1; } 90%, 100% { opacity: 0; translate: 0 -12cqh; } }
 @keyframes roam { 50% { translate: 14vw 8vh; scale: 1.2; } to { translate: -8vw 18vh; scale: 0.9; } }
-@keyframes wander { 25% { translate: 9vmin -6vmin; } 50% { translate: 17vmin 4vmin; } 75% { translate: 6vmin 11vmin; } to { translate: -7vmin 3vmin; } }
-@keyframes wander-back { 30% { translate: -11vmin 5vmin; } 60% { translate: -4vmin -10vmin; } to { translate: 9vmin -4vmin; } }
-@keyframes wander-round { 20% { translate: 7vmin 8vmin; } 55% { translate: -10vmin 12vmin; } to { translate: -13vmin -3vmin; } }
 @keyframes drift { to { translate: 0 -6px; } }
 @keyframes arrive { from { opacity: 0; scale: 0.25; } }
 @keyframes clap { to { scale: 1.12; rotate: -6deg; } }

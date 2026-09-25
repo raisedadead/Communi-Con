@@ -1,7 +1,7 @@
 import QRCode from 'qrcode';
 import { ambient } from './ambient';
 import { connectRoom } from './connection';
-import { crowd, cursor, syncCrowd } from './crowd';
+import { crowd, syncCrowd } from './crowd';
 import { codeError, landing } from './landing';
 import type { RoomConnection } from './connection';
 import { ballotOpen, phaseOf, timeLabel, timingProblem, transition, votingWindow } from './session';
@@ -84,7 +84,7 @@ function header(tag = ''): string {
 }
 
 function cue(text: string): string {
-  const rising = Array.from({ length: 7 }, (_, index) => `<span class="rise" style="--x:${8 + index * 13}%;--d:${(index * 0.45).toFixed(2)}s">${cursor(index % 2 ? '#202821' : '#f2f3eb')}</span>`).join('');
+  const rising = Array.from({ length: 7 }, (_, index) => `<span class="rise" style="--x:${8 + index * 13}%;--d:${(index * 0.45).toFixed(2)}s;--s:${[20, 28, 36][index % 3]}px;--c:${index % 2 ? '#202821' : '#f2f3eb'}"></span>`).join('');
   return `<main class="cue"><div class="burst" aria-hidden="true">${rising}</div><span class="clap" aria-hidden="true">👏</span><h1 data-enter="cue">Round of applause</h1>${text ? `<p data-enter="cue-${escape(text)}" style="--i:1">${text}</p>` : ''}</main>`;
 }
 
@@ -125,7 +125,7 @@ function audience(current: Session): string {
     const title = name
       ? `<p><span class="live next" data-enter="next">Up next</span></p><h1 class="display" data-enter="next-${escape(name)}" style="--i:1">${escape(name)}</h1>`
       : '<h1 class="display" data-enter="floor">You are in.</h1>';
-    return `${header()}<main class="screen"><section class="card crowd-card">${crowd(0, true)}<p class="quiet">Each cursor is one person. Yours is lime.</p></section><section class="intro">${title}<p>Keep this page open. Voting opens during each talk.</p><p class="quiet">Votes are anonymous. Your first vote shows as 👍 or 👎 on the screens. Only the co-chairs see the totals.</p></section></main>`;
+    return `${header()}<main class="screen"><section class="card crowd-card">${crowd(0, true)}<p class="quiet">Each dot is one person. Yours is lime.</p></section><section class="intro">${title}<p>Keep this page open. Voting opens during each talk.</p><p class="quiet">Votes are anonymous. Your first vote shows as 👍 or 👎 on the screens. Only the co-chairs see the totals.</p></section></main>`;
   }
   if (phase === 'ended') {
     return `${header()}<main class="screen"><section class="intro"><h1 class="display" data-enter="ended">Time is up.</h1><p data-enter="ended-text" style="--i:1">Voting is closed.</p></section></main>`;
