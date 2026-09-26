@@ -7,7 +7,10 @@
   "scripts": {
     "check": "tsc --noEmit && tsc --noEmit -p tsconfig.worker.json",
     "build": "pnpm check && vite build",
-    "dev": "pnpm build && (vite build --watch --logLevel warn & wrangler dev --port ${PORT:-8000})"
+    "dev": "pnpm build && (vite build --watch --logLevel warn & wrangler dev --port ${PORT:-8000})",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "vitest run"
   },
   "dependencies": {
     "partyserver": "0.5.10",
@@ -15,10 +18,13 @@
     "qrcode": "1.5.4"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.14",
+    "@cloudflare/vitest-pool-workers": "0.22.0",
     "@cloudflare/workers-types": "5.20260922.1",
     "@types/qrcode": "1.5.6",
     "typescript": "7.0.2",
     "vite": "8.3.0",
+    "vitest": "4.1.11",
     "wrangler": "4.136.3"
   }
 }
