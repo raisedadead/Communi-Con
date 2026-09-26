@@ -89,6 +89,8 @@ export function useRoom(
     if (!state.pending) clearTimeout(replyTimer.current);
   }, [state.pending]);
 
+  useEffect(() => () => clearTimeout(replyTimer.current), []);
+
   const act = useCallback(
     (action: Action, basis?: Basis): boolean => {
       if (latest.current.pending) return false;

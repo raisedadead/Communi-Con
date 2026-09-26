@@ -37,8 +37,10 @@ export function connectRoom(
   async function start(): Promise<void> {
     try {
       const response = await fetch(`/api/rooms/${room}/session?${new URLSearchParams(query)}`);
+      if (closed) return;
       if (!response.ok) {
         const body = (await response.json()) as { error?: string };
+        if (closed) return;
         callbacks.error(body.error || unreachable, response.status >= 500 ? 'retry' : 'final');
         return;
       }
@@ -81,7 +83,7 @@ export function connectRoom(
       });
       document.addEventListener('visibilitychange', refresh);
     } catch {
-      callbacks.error(unreachable, 'retry');
+      if (!closed) callbacks.error(unreachable, 'retry');
     }
   }
 

@@ -82,6 +82,11 @@ describe('event name', () => {
     expect(await eventOf(room)).toBe('Demo Day 2026');
   });
 
+  it('cuts the event name to 60 characters', async () => {
+    const { room } = await createRoom('é'.repeat(70));
+    expect(await eventOf(room)).toBe('é'.repeat(60));
+  });
+
   it('sends an empty event name when the co-chair gives none', async () => {
     const { room } = await createRoom();
     expect(await eventOf(room)).toBe('');

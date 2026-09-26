@@ -52,3 +52,12 @@ pnpm build
 - Add a test for a change in `src/shared` or `src/worker`.
 - Use plain CSS. Put a rule in the file for its screen.
 - Write commit subjects as `type(scope): subject`, for example `fix(stage): align the QR code`.
+
+## Deploy from your computer
+
+```sh
+pnpm build
+pnpm run deploy
+```
+
+`pnpm run deploy` uploads the output of `pnpm build`. Run the build first.
