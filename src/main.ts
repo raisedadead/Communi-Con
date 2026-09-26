@@ -3,7 +3,7 @@ import { ambient } from './ambient';
 import type { RoomConnection } from './connection';
 import { connectRoom } from './connection';
 import { crowd, syncCrowd } from './crowd';
-import { codeError, landing, paintCode } from './landing';
+import { codeError, guardCode, landing, paintCode } from './landing';
 import type { Role, RoomSnapshot } from './protocol';
 import type { Action, Opinion, Phase, Session, Timing } from './session';
 import {
@@ -650,6 +650,11 @@ async function share(kind: 'audience' | 'stage' | 'admin'): Promise<void> {
       prompt('Copy this link:', url);
   }
 }
+
+root.addEventListener('beforeinput', event => {
+  if (event.target instanceof HTMLInputElement && event.target.classList.contains('otp-input'))
+    guardCode(event.target, event);
+});
 
 root.addEventListener('input', event => {
   if (event.target instanceof HTMLInputElement && event.target.classList.contains('otp-input'))

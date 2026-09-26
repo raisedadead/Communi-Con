@@ -51,12 +51,30 @@ function join(invalid: boolean): string {
 export function paintCode(input: HTMLInputElement): void {
   const digits = input.value.replace(/\D/g, '').slice(0, codeLength);
   if (input.value !== digits) input.value = digits;
-  if (document.activeElement === input && input.selectionStart !== digits.length)
+  const selectedAll = input.selectionStart === 0 && input.selectionEnd === digits.length;
+  if (document.activeElement === input && input.selectionStart !== digits.length && !selectedAll)
     input.setSelectionRange(digits.length, digits.length);
   for (const slot of input.parentElement!.querySelectorAll<HTMLElement>('[data-slot]')) {
     const index = Number(slot.dataset.slot);
     slot.textContent = digits[index] ?? '';
     slot.classList.toggle('active', index === Math.min(digits.length, codeLength - 1));
+  }
+}
+
+export function guardCode(input: HTMLInputElement, event: InputEvent): void {
+  const replacing = input.selectionStart !== input.selectionEnd;
+  if (event.inputType === 'insertFromPaste') {
+    event.preventDefault();
+    input.value = (event.dataTransfer?.getData('text') ?? '')
+      .replace(/\D/g, '')
+      .slice(0, codeLength);
+    paintCode(input);
+  } else if (
+    event.inputType.startsWith('insert') &&
+    !replacing &&
+    input.value.length >= codeLength
+  ) {
+    event.preventDefault();
   }
 }
 

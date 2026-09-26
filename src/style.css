@@ -307,6 +307,7 @@ svg {
   flex: 1 1 17rem;
 }
 .otp-input {
+  forced-color-adjust: none;
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -324,6 +325,7 @@ svg {
   background: transparent;
 }
 .otp-slots {
+  pointer-events: none;
   display: flex;
   align-items: center;
   gap: 8px;
