@@ -8,7 +8,9 @@ const worker = exports as unknown as { default: Fetcher };
 const origin = 'http://example.com';
 
 function call(path: string, init: RequestInit = {}): Promise<Response> {
-  return worker.default.fetch(new Request(`${origin}${path}`, init));
+  const headers = new Headers(init.headers);
+  if (!headers.has('CF-Connecting-IP')) headers.set('CF-Connecting-IP', crypto.randomUUID());
+  return worker.default.fetch(new Request(`${origin}${path}`, { ...init, headers }));
 }
 
 async function createRoom(event?: string): Promise<{ room: string; key: string }> {
@@ -47,6 +49,32 @@ function next(
 }
 
 const state = (message: ServerMessage): message is RoomSnapshot => message.type === 'state';
+
+async function statuses(count: number, path: string, init: RequestInit = {}): Promise<number[]> {
+  const headers = { ...init.headers, 'CF-Connecting-IP': crypto.randomUUID() };
+  const result: number[] = [];
+  for (let index = 0; index < count; index += 1)
+    result.push((await call(path, { ...init, headers })).status);
+  return result;
+}
+
+describe('rate limits', () => {
+  it('limits room creation per address', async () => {
+    const tries = await statuses(11, '/api/rooms', {
+      method: 'POST',
+      headers: { Origin: origin },
+      body: JSON.stringify({ passphrase: 'wrong' }),
+    });
+    expect(tries.slice(0, 10).every(status => status === 403)).toBe(true);
+    expect(tries[10]).toBe(429);
+  });
+
+  it('limits room sessions per address', async () => {
+    const tries = await statuses(101, '/api/rooms/00000000/session?role=stage');
+    expect(tries.slice(0, 100).every(status => status === 404)).toBe(true);
+    expect(tries[100]).toBe(429);
+  });
+});
 
 describe('room creation', () => {
   it('refuses a request from another origin', async () => {
