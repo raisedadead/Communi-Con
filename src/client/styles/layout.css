@@ -1,0 +1,132 @@
+.bar,
+.screen {
+  max-width: 30rem;
+  margin-inline: auto;
+  padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+}
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-block: calc(14px + env(safe-area-inset-top)) 14px;
+  font-size: 15px;
+}
+.brand {
+  --name: 28px;
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.brand-name {
+  min-width: 0;
+  font-size: var(--name);
+  line-height: 1.1;
+  overflow-wrap: break-word;
+  text-box: trim-both cap alphabetic;
+}
+.brand-event {
+  display: block;
+  margin-block-start: 0.5em;
+  color: var(--lime);
+  font-size: 0.6em;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.brand .logo {
+  width: 30px;
+  height: 30px;
+}
+.brand:has(.brand-name) .logo {
+  width: calc(var(--name) * 1.77);
+  height: calc(var(--name) * 1.77);
+}
+.chip {
+  padding: 2px 8px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.net {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.net.off {
+  color: var(--warn);
+}
+.people {
+  position: relative;
+  display: inline-flex;
+  margin-inline-end: 14px;
+  color: var(--text);
+}
+.people svg {
+  width: 26px;
+  height: 26px;
+}
+.badge {
+  position: absolute;
+  inset-block-start: -10px;
+  inset-inline-start: 19px;
+  min-width: 22px;
+  height: 22px;
+  padding-inline: 6px;
+  border-radius: 11px;
+  background: var(--lime);
+  color: var(--ink);
+  font: 700 13px / 22px var(--display);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.screen {
+  display: grid;
+  gap: 16px;
+  padding-block: 4px calc(24px + env(safe-area-inset-bottom));
+}
+.card {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--card);
+}
+.quiet {
+  color: var(--muted);
+  font-size: 15px;
+}
+.address {
+  display: block;
+  margin-block-start: 4px;
+  color: var(--text);
+  font-size: 17px;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.intro {
+  display: grid;
+  gap: 12px;
+  padding: 8px 4px 0;
+}
+.display {
+  font-size: 40px;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}

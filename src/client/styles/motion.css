@@ -1,0 +1,356 @@
+@media (prefers-reduced-motion: no-preference) {
+  .button:active:not(:disabled),
+  .choice:active:not(:disabled) {
+    scale: 0.96;
+  }
+  .beam {
+    animation: sway 7s ease-in-out infinite alternate;
+  }
+  .presenter::before {
+    animation: drift 2.4s ease-in-out infinite alternate;
+  }
+  .seat {
+    animation: wave 8s ease-in-out var(--w) infinite;
+  }
+  .react {
+    animation: float 6s cubic-bezier(0.22, 1, 0.36, 1) var(--d) infinite;
+  }
+  .clap-pop {
+    animation: applaud 8s cubic-bezier(0.22, 1, 0.36, 1) var(--w) infinite;
+  }
+  .wave {
+    animation: sweep 20s cubic-bezier(0.45, 0, 0.55, 1) 3s infinite;
+  }
+  .wave-tile {
+    animation: sweep-back 20s cubic-bezier(0.45, 0, 0.55, 1) 3s infinite;
+  }
+  .glow {
+    animation: roam 27s ease-in-out infinite alternate;
+  }
+  .g1 {
+    animation-duration: 34s;
+    animation-direction: alternate-reverse;
+  }
+  .g2 {
+    animation-duration: 41s;
+  }
+  .state[data-mood='open'] .pulse {
+    animation: pulse 1.6s ease-out infinite;
+  }
+  .peer {
+    animation: hop 20s ease-in-out var(--w) infinite;
+  }
+  .peer::before {
+    animation: drift 5s ease-in-out var(--d) infinite alternate;
+  }
+  .peer.fresh {
+    animation:
+      arrive 500ms cubic-bezier(0.2, 0, 0, 1) both,
+      hop 20s ease-in-out var(--w) infinite;
+  }
+  .you {
+    animation: drift 3.5s ease-in-out infinite alternate;
+  }
+  .clap {
+    animation: clap 700ms ease-in-out infinite alternate;
+  }
+  .burst {
+    display: block;
+    position: absolute;
+    inset: 0;
+  }
+  .rise {
+    position: absolute;
+    inset-inline-start: var(--x);
+    bottom: -48px;
+    width: var(--s);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: 0 0 0 2px var(--ink);
+    animation: rise 3.2s cubic-bezier(0.2, 0, 0, 1) var(--d) infinite;
+  }
+  .live:not(.next)::before {
+    animation: pulse 1.6s ease-out infinite;
+  }
+  .enter {
+    animation: reveal 500ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 60ms) both;
+  }
+  .state.enter {
+    animation: swap 150ms ease-in-out both;
+  }
+  .tick.enter {
+    animation: check 500ms cubic-bezier(0.34, 1.35, 0.64, 1) both;
+  }
+  .emoji.enter {
+    animation: press 350ms cubic-bezier(0.34, 1.96, 0.64, 1);
+  }
+  .notice.enter {
+    animation: toast 350ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .otp-caret {
+    animation: pulse 1s ease-in-out infinite;
+  }
+  .input.enter,
+  .otp.enter {
+    animation: shake 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .badge.enter {
+    animation: badge 500ms cubic-bezier(0.34, 1.36, 0.64, 1) both;
+  }
+  .badge.pop {
+    animation: pop 500ms cubic-bezier(0.34, 1.45, 0.64, 1);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+@keyframes sweep {
+  from {
+    translate: calc(-1 * var(--band)) 0;
+  }
+  22%,
+  to {
+    translate: 100vw 0;
+  }
+}
+@keyframes sweep-back {
+  from {
+    translate: var(--band) 0;
+  }
+  22%,
+  to {
+    translate: -100vw 0;
+  }
+}
+@keyframes hop {
+  0%,
+  6%,
+  100% {
+    translate: 0 0;
+  }
+  3% {
+    translate: 0 -7px;
+  }
+}
+@keyframes sway {
+  from {
+    rotate: -5deg;
+  }
+  to {
+    rotate: 5deg;
+  }
+}
+@keyframes wave {
+  0%,
+  62%,
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
+  68% {
+    translate: 0 -3cqh;
+    scale: 1.2;
+  }
+  75% {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+@keyframes float {
+  from {
+    opacity: 0;
+    translate: 0 0;
+    scale: 0.6;
+  }
+  12% {
+    opacity: 1;
+    scale: 1;
+  }
+  75% {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 0;
+    translate: var(--dx) -36cqh;
+    scale: 0.9;
+  }
+}
+@keyframes applaud {
+  0%,
+  63% {
+    opacity: 0;
+    translate: 0 4cqh;
+    scale: 0.4;
+  }
+  68% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1.15;
+  }
+  80% {
+    opacity: 1;
+    translate: 0 -6cqh;
+    scale: 1;
+  }
+  90%,
+  100% {
+    opacity: 0;
+    translate: 0 -12cqh;
+  }
+}
+@keyframes roam {
+  50% {
+    translate: 14vw 8vh;
+    scale: 1.2;
+  }
+  to {
+    translate: -8vw 18vh;
+    scale: 0.9;
+  }
+}
+@keyframes drift {
+  to {
+    translate: 0 -6px;
+  }
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    scale: 0.25;
+  }
+}
+@keyframes clap {
+  to {
+    scale: 1.12;
+    rotate: -6deg;
+  }
+}
+/* Motion values: https://transitions.dev */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+    filter: blur(3px);
+  }
+}
+@keyframes swap {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+    filter: blur(2px);
+  }
+}
+@keyframes check {
+  from {
+    opacity: 0;
+    rotate: 80deg;
+    translate: 0 12px;
+    filter: blur(8px);
+  }
+}
+@keyframes press {
+  30% {
+    scale: 0.82;
+  }
+}
+@keyframes toast {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+    scale: 0.97;
+    filter: blur(2px);
+  }
+}
+@keyframes shake {
+  20% {
+    translate: -6px 0;
+  }
+  40% {
+    translate: 6px 0;
+  }
+  60% {
+    translate: -4px 0;
+  }
+  80% {
+    translate: 4px 0;
+  }
+}
+@keyframes badge {
+  from {
+    opacity: 0;
+    scale: 0;
+    translate: -8px 12px;
+    filter: blur(2px);
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+    filter: blur(2px);
+  }
+}
+@keyframes cheer {
+  from {
+    opacity: 0;
+    scale: 0.5;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  12% {
+    opacity: 1;
+    scale: 1;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 0;
+    translate: 0 -75dvh;
+    rotate: var(--r);
+  }
+}
+@keyframes confetti {
+  from {
+    opacity: 0;
+    scale: 0.4;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  15% {
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    translate: var(--px) calc(var(--py) + 90px);
+    rotate: var(--r);
+  }
+}
+@keyframes rise {
+  from {
+    translate: 0 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  to {
+    translate: 0 -110dvh;
+    opacity: 0;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .step {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+  }
+}

@@ -1,0 +1,134 @@
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/space-grotesk.woff2') format('woff2');
+}
+
+:root {
+  --page: #1a211b;
+  --card: #252e26;
+  --line: #34403a;
+  --track: #3a453a;
+  --edge: #7d8c72;
+  --text: #f2f3eb;
+  --muted: #a9b5a3;
+  --lime: #d3f86a;
+  --ink: #202821;
+  --warn: #f1ad75;
+  --display: 'Space Grotesk', system-ui, sans-serif;
+  color-scheme: dark;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  color: var(--text);
+  background: var(--page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  min-height: 100dvh;
+  margin: 0;
+}
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ambient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/bg.svg') 0 0 / 400px 400px;
+}
+.glow {
+  position: absolute;
+  width: 80vmax;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--c) 14%, transparent),
+    transparent
+  );
+}
+.g0 {
+  inset-block-start: -40vmax;
+  inset-inline-start: -30vmax;
+}
+.g1 {
+  inset-block-start: 10vh;
+  inset-inline-end: -45vmax;
+}
+.g2 {
+  inset-block-end: -50vmax;
+  inset-inline-start: 0;
+}
+.wave {
+  --band: max(40vw, 240px);
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--band);
+  overflow: hidden;
+  translate: calc(-1 * var(--band)) 0;
+  mask-image: linear-gradient(90deg, transparent, #000 40%, #000 60%, transparent);
+}
+.wave-tile {
+  position: absolute;
+  inset: -3px auto 3px 0;
+  width: 100vw;
+  background: url('/bg-wave.svg') 0 0 / 400px 400px;
+  translate: var(--band) 0;
+}
+h1,
+h2,
+p {
+  margin: 0;
+}
+h1,
+h2 {
+  font-family: var(--display);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+p {
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+button,
+a {
+  font: inherit;
+  color: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+:focus-visible {
+  outline: 3px solid var(--lime);
+  outline-offset: 3px;
+}
+svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}

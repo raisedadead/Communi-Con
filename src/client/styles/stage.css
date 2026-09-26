@@ -1,0 +1,172 @@
+.event-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+.event-screen > .bar {
+  width: 100%;
+}
+.applause {
+  --text: var(--ink);
+  --muted: var(--ink);
+  --warn: var(--ink);
+  background: var(--lime) url('/bg-lime.svg') 0 0 / 400px 400px;
+  color: var(--ink);
+}
+.applause .brand-event {
+  color: inherit;
+}
+.applause .logo {
+  border: 1px solid var(--ink);
+  border-radius: 25%;
+}
+.applause .badge {
+  background: var(--ink);
+  color: var(--lime);
+}
+.cue {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 24px;
+  overflow: hidden;
+  text-align: center;
+}
+.cue h1 {
+  position: relative;
+  font-size: clamp(44px, 13vw, 160px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+[data-role='stage'] .cue h1 {
+  font-size: clamp(44px, 18vmin, 144px);
+}
+.cue p {
+  position: relative;
+  max-width: 22ch;
+  font-size: clamp(20px, 4.5vmin, 56px);
+}
+.clap {
+  position: relative;
+  font-size: clamp(72px, 22vw, 200px);
+  line-height: 1;
+}
+.burst {
+  display: none;
+}
+
+.stage-bar {
+  width: 100%;
+  max-width: none;
+  padding: 3vmin 4vmin 0;
+}
+.stage-bar .brand {
+  --name: clamp(28px, 4vmin, 48px);
+}
+.stage {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  gap: 4vmin 6vmin;
+  padding: 4vmin;
+  text-align: center;
+}
+.qr {
+  flex: none;
+  width: min(86vw, 36vh);
+  aspect-ratio: 1;
+  border-radius: 2vmin;
+  overflow: hidden;
+  background: #fff;
+}
+.qr img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.stage-text {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  min-width: 0;
+}
+.stage-text .live {
+  font-size: clamp(12px, 2.4vmin, 28px);
+}
+.stage-name {
+  max-width: 14ch;
+  font-family: var(--display);
+  font-size: clamp(36px, 10vmin, 130px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.stage-line {
+  max-width: 18ch;
+  margin-inline: auto;
+  font-size: clamp(24px, 6vmin, 80px);
+  font-weight: 700;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.stage-time {
+  font-family: var(--display);
+  font-size: clamp(56px, 18vmin, 220px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.stage-host {
+  align-self: flex-end;
+  max-width: 60vw;
+  margin: 0 3vmin 2.5vmin;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: clamp(14px, 2.8vmin, 36px);
+  text-align: end;
+}
+.stage-host strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+@media (orientation: landscape) {
+  .stage {
+    flex-wrap: nowrap;
+  }
+  .qr {
+    width: min(64vh, 44vw);
+  }
+  .stage-text {
+    flex: 1;
+    container-type: inline-size;
+  }
+  .stage-name {
+    font-size: min(10vmin, 13cqi);
+  }
+  .stage-time {
+    font-size: min(18vmin, 30cqi);
+  }
+}
+.stage-bar .people svg {
+  width: clamp(28px, 5vmin, 64px);
+  height: clamp(28px, 5vmin, 64px);
+}
+.stage-bar .badge {
+  inset-block-start: -1.6vmin;
+  inset-inline-start: 72%;
+  min-width: clamp(22px, 3.6vmin, 46px);
+  height: clamp(22px, 3.6vmin, 46px);
+  padding-inline: 0.8vmin;
+  border-radius: 999px;
+  font-size: clamp(13px, 2.2vmin, 28px);
+  line-height: clamp(22px, 3.6vmin, 46px);
+}

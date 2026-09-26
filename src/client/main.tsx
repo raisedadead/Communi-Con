@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { FeedbackProvider } from './components/Feedback';
-import './style.css';
+import './styles/index.css';
 
 const root = document.getElementById('app');
 if (!root) throw new Error('Missing #app');
