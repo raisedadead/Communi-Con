@@ -4,6 +4,36 @@ Anonymous live votes for community talks. The audience votes on phones. The co-c
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/raisedadead/Communi-Con)
 
+![The stage screen during a talk: a QR code, the speaker name, and the talk clock](docs/screenshots/stage.webp)
+
+## Screens
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/phone-join.webp" alt="Enter the event code on a phone" width="200"></td>
+    <td><img src="docs/screenshots/phone-vote.webp" alt="Vote Keep going or Wrap it up" width="200"></td>
+    <td><img src="docs/screenshots/phone-applause.webp" alt="The applause cue on a phone" width="200"></td>
+    <td><img src="docs/screenshots/phone-co-chair.webp" alt="The co-chair controls and the vote totals" width="200"></td>
+  </tr>
+  <tr>
+    <td align="center">Join</td>
+    <td align="center">Vote</td>
+    <td align="center">Applause</td>
+    <td align="center">Co-chair</td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/landing.webp" alt="The home page with the event code entry"></td>
+    <td><img src="docs/screenshots/stage-applause.webp" alt="The applause cue on the stage screen"></td>
+  </tr>
+  <tr>
+    <td align="center">Home page</td>
+    <td align="center">Applause on the stage screen</td>
+  </tr>
+</table>
+
 ## Deploy
 
 1. Click **Deploy to Cloudflare**. Cloudflare copies this repository to your GitHub account and deploys it to your Cloudflare account.
