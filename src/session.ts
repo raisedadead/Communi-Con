@@ -29,7 +29,17 @@ export type Action =
   | ({ type: 'timing' } & Timing);
 
 export function initialSession(): Session {
-  return { mode: 'lobby', elapsed: 0, paused: false, applause: false, openedAt: null, length: 600, planned: 600, opensAt: 300, lasts: 300 };
+  return {
+    mode: 'lobby',
+    elapsed: 0,
+    paused: false,
+    applause: false,
+    openedAt: null,
+    length: 600,
+    planned: 600,
+    opensAt: 300,
+    lasts: 300,
+  };
 }
 
 export function timingProblem({ length, opensAt, lasts }: Timing): keyof Timing | null {
@@ -63,28 +73,66 @@ export function ballotOpen(session: Session): boolean {
 
 export function canNudge(session: Session, seconds: number): boolean {
   const length = session.length + seconds;
-  return session.mode === 'talk' && !session.applause && length >= 60 && length <= 7200 && length > session.elapsed && (session.openedAt ?? session.opensAt) < length;
+  return (
+    session.mode === 'talk' &&
+    !session.applause &&
+    length >= 60 &&
+    length <= 7200 &&
+    length > session.elapsed &&
+    (session.openedAt ?? session.opensAt) < length
+  );
 }
 
 export function transition(session: Session, action: Action): Session {
-  const idle = { elapsed: 0, paused: false, applause: false, openedAt: null, length: session.planned };
+  const idle = {
+    elapsed: 0,
+    paused: false,
+    applause: false,
+    openedAt: null,
+    length: session.planned,
+  };
   if (action.type === 'start') return { ...session, ...idle, mode: 'talk' };
   if (action.type === 'reset') return { ...session, ...idle, mode: 'lobby' };
   if (action.type === 'timing') {
-    const length = action.length === session.planned && action.opensAt < session.length ? session.length : action.length;
-    const openedAt = action.opensAt === session.opensAt && session.openedAt !== null && session.openedAt < length ? session.openedAt : null;
-    return { ...session, length, planned: action.length, opensAt: action.opensAt, lasts: action.lasts, openedAt, elapsed: Math.min(session.elapsed, length) };
+    const length =
+      action.length === session.planned && action.opensAt < session.length
+        ? session.length
+        : action.length;
+    const openedAt =
+      action.opensAt === session.opensAt && session.openedAt !== null && session.openedAt < length
+        ? session.openedAt
+        : null;
+    return {
+      ...session,
+      length,
+      planned: action.length,
+      opensAt: action.opensAt,
+      lasts: action.lasts,
+      openedAt,
+      elapsed: Math.min(session.elapsed, length),
+    };
   }
   if (session.mode !== 'talk' || session.applause) return session;
   const phase = phaseOf(session);
-  if (action.type === 'pause' && (session.paused || phase !== 'ended')) return { ...session, paused: !session.paused };
-  if (action.type === 'tick' && !session.paused) return { ...session, elapsed: Math.min(session.length, session.elapsed + Math.max(0, action.seconds)) };
+  if (action.type === 'pause' && (session.paused || phase !== 'ended'))
+    return { ...session, paused: !session.paused };
+  if (action.type === 'tick' && !session.paused)
+    return {
+      ...session,
+      elapsed: Math.min(session.length, session.elapsed + Math.max(0, action.seconds)),
+    };
   if (action.type === 'applause') return { ...session, paused: false, applause: true };
-  if (action.type === 'open' && (phase === 'listening' || phase === 'closed')) return { ...session, openedAt: session.elapsed };
-  if (action.type === 'nudge' && canNudge(session, action.seconds)) return { ...session, length: session.length + action.seconds };
+  if (action.type === 'open' && (phase === 'listening' || phase === 'closed'))
+    return { ...session, openedAt: session.elapsed };
+  if (action.type === 'nudge' && canNudge(session, action.seconds))
+    return { ...session, length: session.length + action.seconds };
   return session;
 }
 
 export function timeLabel(seconds: number): string {
-  return `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+  return `${Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, '0')}:${Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, '0')}`;
 }
