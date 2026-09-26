@@ -146,4 +146,5 @@ vite.config.ts.timestamp-*
 .scratchpad/
 .wrangler/
 .dev.vars*
+!.dev.vars.example
 .DS_Store

@@ -3,7 +3,7 @@
   "name": "communi-con",
   "main": "src/worker/index.ts",
   "compatibility_date": "2026-09-22",
-  "workers_dev": false,
+  "workers_dev": true,
   "preview_urls": true,
   "assets": {
     "binding": "ASSETS",

@@ -11,7 +11,7 @@
     "format": "oxfmt",
     "test": "vitest run",
     "preview": "vite preview",
-    "deploy": "pnpm build && wrangler deploy"
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "input-otp": "1.5.0",
@@ -36,5 +36,12 @@
     "vitest": "4.1.11",
     "wrangler": "4.140.0"
   },
-  "packageManager": "pnpm@12.4.1"
+  "packageManager": "pnpm@12.4.1",
+  "cloudflare": {
+    "bindings": {
+      "ADMIN_PASSPHRASE": {
+        "description": "The passphrase that co-chairs enter at `/admin` to create a room. Use a long random value."
+      }
+    }
+  }
 }
