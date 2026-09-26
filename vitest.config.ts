@@ -10,7 +10,10 @@ export default defineConfig({
         plugins: [
           cloudflareTest({
             wrangler: { configPath: './wrangler.jsonc' },
-            miniflare: { bindings: { ADMIN_PASSPHRASE: 'test passphrase' } },
+            miniflare: {
+              compatibilityDate: '2026-08-22',
+              bindings: { ADMIN_PASSPHRASE: 'test passphrase' },
+            },
           }),
         ],
         test: { name: 'worker', include: ['worker/**/*.test.ts'] },
