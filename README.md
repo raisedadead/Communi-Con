@@ -59,11 +59,11 @@ Do not add `--http-host-header localhost:8000`. It exposes the local Wrangler ex
 
 Cloudflare Workers Builds deploys each push to `main`. Connect the repository once in the Cloudflare dashboard (**Workers & Pages** > **Create** > **Import a repository**) with these settings:
 
-| Setting | Value |
-| --- | --- |
-| Project name | `communi-con` |
-| Build command | `pnpm run build` |
-| Deploy command | `npx wrangler deploy` |
+| Setting        | Value                     |
+| -------------- | ------------------------- |
+| Project name   | `communi-con`             |
+| Build command  | `pnpm run build`          |
+| Deploy command | `npx wrangler deploy`     |
 | Build variable | `PNPM_VERSION` = `12.4.1` |
 
 The project name must match `name` in `wrangler.jsonc`. The build image installs pnpm 10 by default, and pnpm 10 cannot switch to the pnpm 12 in `packageManager`.

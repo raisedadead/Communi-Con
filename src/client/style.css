@@ -1,9 +1,9 @@
 @font-face {
-  font-family: "Space Grotesk";
+  font-family: 'Space Grotesk';
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
-  src: url("/fonts/space-grotesk.woff2") format("woff2");
+  src: url('/fonts/space-grotesk.woff2') format('woff2');
 }
 
 :root {
@@ -17,9 +17,14 @@
   --lime: #d3f86a;
   --ink: #202821;
   --warn: #f1ad75;
-  --display: "Space Grotesk", system-ui, sans-serif;
+  --display: 'Space Grotesk', system-ui, sans-serif;
   color-scheme: dark;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
   color: var(--text);
   background: var(--page);
   -webkit-font-smoothing: antialiased;
@@ -42,10 +47,10 @@ body {
   pointer-events: none;
 }
 .ambient::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
-  background: url("/bg.svg") 0 0 / 400px 400px;
+  background: url('/bg.svg') 0 0 / 400px 400px;
 }
 .glow {
   position: absolute;
@@ -83,7 +88,7 @@ body {
   position: absolute;
   inset: -3px auto 3px 0;
   width: 100vw;
-  background: url("/bg-wave.svg") 0 0 / 400px 400px;
+  background: url('/bg-wave.svg') 0 0 / 400px 400px;
   translate: var(--band) 0;
 }
 h1,
@@ -369,12 +374,12 @@ svg {
   outline-offset: -1px;
 }
 .otp-input:focus ~ .otp-slots .active:empty::after {
-  content: "";
+  content: '';
   width: 2px;
   height: 26px;
   background: var(--lime);
 }
-.otp-input[aria-invalid="true"] ~ .otp-slots .otp-slot {
+.otp-input[aria-invalid='true'] ~ .otp-slots .otp-slot {
   border-color: var(--warn);
 }
 .pitch .display {
@@ -442,7 +447,7 @@ svg {
   gap: 2cqw;
 }
 .presenter::before {
-  content: "";
+  content: '';
   width: 8cqw;
   aspect-ratio: 1;
   border-radius: 50%;
@@ -590,10 +595,10 @@ svg {
   border-radius: 50%;
   background: var(--lime);
 }
-.state[data-mood="paused"] .pulse {
+.state[data-mood='paused'] .pulse {
   background: var(--warn);
 }
-.state[data-mood="idle"] .pulse {
+.state[data-mood='idle'] .pulse {
   background: var(--edge);
 }
 .clock {
@@ -695,7 +700,7 @@ svg {
   font-size: 17px;
   font-weight: 400;
 }
-.input[aria-invalid="true"] {
+.input[aria-invalid='true'] {
   border-color: var(--warn);
 }
 .field-error {
@@ -770,7 +775,7 @@ svg {
   text-transform: uppercase;
 }
 .live::before {
-  content: "";
+  content: '';
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -858,7 +863,7 @@ svg {
   width: 18px;
   height: 18px;
 }
-.choice[aria-pressed="true"] {
+.choice[aria-pressed='true'] {
   border-color: var(--lime);
   background: var(--lime);
   color: var(--ink);
@@ -872,12 +877,12 @@ svg {
   opacity: 0.45;
   filter: grayscale(1);
 }
-.choice:disabled[aria-pressed="true"] {
+.choice:disabled[aria-pressed='true'] {
   border-color: var(--lime);
   background: var(--track);
   color: var(--text);
 }
-.choice:disabled[aria-pressed="true"] .emoji {
+.choice:disabled[aria-pressed='true'] .emoji {
   opacity: 1;
   filter: none;
 }
@@ -913,7 +918,7 @@ svg {
   inset-block-start: var(--y);
 }
 .peer::before {
-  content: "";
+  content: '';
   display: block;
   width: 14px;
   height: 14px;
@@ -959,7 +964,7 @@ svg {
   --text: var(--ink);
   --muted: var(--ink);
   --warn: var(--ink);
-  background: var(--lime) url("/bg-lime.svg") 0 0 / 400px 400px;
+  background: var(--lime) url('/bg-lime.svg') 0 0 / 400px 400px;
   color: var(--ink);
 }
 .applause .brand-event {
@@ -990,7 +995,7 @@ svg {
   line-height: 1;
   letter-spacing: -0.04em;
 }
-[data-role="stage"] .cue h1 {
+[data-role='stage'] .cue h1 {
   font-size: clamp(44px, 18vmin, 144px);
 }
 .cue p {
@@ -1127,11 +1132,11 @@ svg {
   overflow: hidden;
   pointer-events: none;
 }
-[data-role="stage"] #app {
+[data-role='stage'] #app {
   position: relative;
   z-index: 1;
 }
-[data-role="stage"] .fx {
+[data-role='stage'] .fx {
   z-index: 0;
 }
 .cheer {
@@ -1142,7 +1147,7 @@ svg {
   line-height: 1;
   animation: cheer 2.8s cubic-bezier(0.22, 1, 0.36, 1) var(--d) both;
 }
-[data-role="stage"] .cheer {
+[data-role='stage'] .cheer {
   font-size: clamp(44px, 9vmin, 120px);
 }
 .confetti {
@@ -1238,7 +1243,7 @@ svg {
   .g2 {
     animation-duration: 41s;
   }
-  .state[data-mood="open"] .pulse {
+  .state[data-mood='open'] .pulse {
     animation: pulse 1.6s ease-out infinite;
   }
   .peer {

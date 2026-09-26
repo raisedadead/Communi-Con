@@ -1,15 +1,14 @@
 {
   "name": "communi-con",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "type": "module",
-  "packageManager": "pnpm@12.4.1",
   "scripts": {
     "check": "tsc --noEmit && tsc --noEmit -p tsconfig.worker.json",
     "build": "pnpm check && vite build",
     "dev": "vite dev",
-    "lint": "biome check .",
-    "format": "biome check --write .",
+    "lint": "oxlint && oxfmt --check",
+    "format": "oxfmt",
     "test": "vitest run",
     "preview": "vite preview",
     "deploy": "pnpm build && wrangler deploy"
@@ -20,14 +19,16 @@
     "qrcode": "1.5.4"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.14",
     "@cloudflare/vite-plugin": "1.60.1",
     "@cloudflare/vitest-pool-workers": "0.22.0",
     "@cloudflare/workers-types": "5.20260922.1",
     "@types/qrcode": "1.5.6",
+    "oxfmt": "0.70.0",
+    "oxlint": "1.85.0",
     "typescript": "7.0.2",
     "vite": "8.3.0",
     "vitest": "4.1.11",
     "wrangler": "4.140.0"
-  }
+  },
+  "packageManager": "pnpm@12.4.1"
 }
