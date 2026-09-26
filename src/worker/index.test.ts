@@ -9,11 +9,11 @@ function call(path: string, init: RequestInit = {}): Promise<Response> {
   return worker.default.fetch(new Request(`${origin}${path}`, init));
 }
 
-async function createRoom(): Promise<{ room: string; key: string }> {
+async function createRoom(event?: string): Promise<{ room: string; key: string }> {
   const response = await call('/api/rooms', {
     method: 'POST',
     headers: { Origin: origin },
-    body: JSON.stringify({ passphrase: 'test passphrase' }),
+    body: JSON.stringify({ passphrase: 'test passphrase', event }),
   });
   expect(response.status).toBe(201);
   return response.json();
@@ -68,6 +68,23 @@ describe('room creation', () => {
     const { room, key } = await createRoom();
     expect(room).toMatch(/^\d{8}$/);
     expect(key).toMatch(/^[a-f0-9]{64}$/);
+  });
+});
+
+async function eventOf(room: string): Promise<string> {
+  const response = await call(`/api/rooms/${room}/session?role=stage`);
+  return ((await response.json()) as RoomSnapshot).event;
+}
+
+describe('event name', () => {
+  it('sends the cleaned event name in the snapshot', async () => {
+    const { room } = await createRoom('  Demo\u0000   Day 2026 ');
+    expect(await eventOf(room)).toBe('Demo Day 2026');
+  });
+
+  it('sends an empty event name when the co-chair gives none', async () => {
+    const { room } = await createRoom();
+    expect(await eventOf(room)).toBe('');
   });
 });
 

@@ -98,11 +98,11 @@ function JoinForm(): ReactNode {
   );
 }
 
-export function Landing({ event }: { event: string }): ReactNode {
+export function Landing(): ReactNode {
   const words = 'Keep going or wrap it up?'.split(' ');
   return (
     <>
-      <Header event={event} />
+      <Header />
       <main className="landing">
         <section className="hero">
           <div className="pitch">

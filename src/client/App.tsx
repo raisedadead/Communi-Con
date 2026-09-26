@@ -13,8 +13,6 @@ import { Landing } from './screens/Landing';
 import { NoAccess, Setup } from './screens/Setup';
 import { Stage } from './screens/Stage';
 
-const event = 'IndiaFOSS 2026';
-
 const phaseAnnouncements: Readonly<Record<Phase, string>> = {
   lobby: 'The talk ended.',
   listening: 'The talk started.',
@@ -23,6 +21,11 @@ const phaseAnnouncements: Readonly<Record<Phase, string>> = {
   applause: 'Round of applause. Clap for the speaker.',
   ended: 'Time is up. Voting is closed.',
 };
+
+function titleFor(role: Role, event: string): string {
+  const title = event ? `${productName} @ ${event}` : productName;
+  return { audience: title, stage: `Stage · ${title}`, admin: `Co-chair · ${title}` }[role];
+}
 
 function usePhaseEffects(role: Role, session: Session | undefined): void {
   const last = useRef<Phase | undefined>(undefined);
@@ -80,7 +83,11 @@ function RoomScreen({
   const { flash } = useFeedback();
   const state = useRoom(room, role, adminKey, flash);
   const { session, snapshot } = state;
+  const event = snapshot?.event ?? '';
   usePhaseEffects(role, session);
+  useEffect(() => {
+    document.title = titleFor(role, event);
+  }, [role, event]);
   const roomLinks = links(room, adminKey);
   const status = session && (
     <Presence
@@ -137,14 +144,12 @@ export function App(): ReactNode {
   );
   const [attempt, setAttempt] = useState(0);
   const { role, room } = route;
+  const inRoom = room !== '' && (role !== 'admin' || adminKey !== '');
 
   useEffect(() => {
-    const title = `${productName} @ ${event}`;
     document.body.dataset.role = role;
-    document.title = { audience: title, stage: `Stage · ${title}`, admin: `Co-chair · ${title}` }[
-      role
-    ];
-  }, [role]);
+    if (!inRoom) document.title = titleFor(role, '');
+  }, [role, inRoom]);
 
   if (role === 'admin' && !adminKey) {
     if (room) return <NoAccess />;
@@ -159,7 +164,7 @@ export function App(): ReactNode {
       />
     );
   }
-  if (!room) return <Landing event={event} />;
+  if (!room) return <Landing />;
   return (
     <RoomScreen
       key={attempt}

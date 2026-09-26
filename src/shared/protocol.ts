@@ -16,6 +16,7 @@ export interface RoomSnapshot {
   opinion: Opinion | null;
   participants: number;
   speaker: string;
+  event: string;
   results?: Results;
 }
 

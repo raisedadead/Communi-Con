@@ -16,12 +16,7 @@ export async function hash(value: string): Promise<string> {
   ).join('');
 }
 
-export async function passphraseMatches(request: Request, expected: string): Promise<boolean> {
-  const body: unknown = await request.json().catch(() => null);
-  const given =
-    body && typeof body === 'object' && 'passphrase' in body && typeof body.passphrase === 'string'
-      ? body.passphrase.trim()
-      : '';
+export async function passphraseMatches(given: string, expected: string): Promise<boolean> {
   const [a, b] = await Promise.all([digest(given), digest(expected.trim())]);
   return given !== '' && crypto.subtle.timingSafeEqual(a, b);
 }

@@ -21,6 +21,7 @@ interface RoomRecord {
   version: number;
   votes: Record<string, Opinion>;
   speaker?: string;
+  event?: string;
 }
 
 interface Peer {
@@ -89,6 +90,7 @@ export class Room extends Server<Env> {
       opinion: peer.participant ? record.votes[peer.participant] || null : null,
       participants,
       speaker: record.speaker || '',
+      event: record.event || '',
     };
     if (peer.role === 'admin') {
       const votes = Object.values(record.votes);
@@ -158,7 +160,7 @@ export class Room extends Server<Env> {
   async onRequest(request: Request): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname === '/initialize' && request.method === 'POST') {
-      const { hostHash } = await request.json<{ hostHash: string }>();
+      const { hostHash, event } = await request.json<{ hostHash: string; event: string }>();
       if (this.room) return json({ error: 'Room already exists.' }, 409);
       this.room = {
         hostHash,
@@ -167,6 +169,7 @@ export class Room extends Server<Env> {
         roundId: crypto.randomUUID(),
         version: 0,
         votes: {},
+        event,
       };
       await this.ctx.storage.put('room', this.room);
       return json({ room: this.name }, 201);

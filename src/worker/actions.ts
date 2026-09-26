@@ -1,7 +1,7 @@
 import type { Action } from '../shared/session';
 import { validTiming } from '../shared/session';
 
-function cleanName(name: string): string {
+export function cleanName(name: string): string {
   return [
     ...name
       .replace(/\s+/g, ' ')

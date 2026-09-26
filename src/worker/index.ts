@@ -1,4 +1,5 @@
 import { routePartykitRequest } from 'partyserver';
+import { cleanName } from './actions';
 import { hash, passphraseMatches, token, tokenPattern } from './auth';
 import { cookie, json, roleOf, sameOrigin, setCookie } from './http';
 import type { Env } from './room';
@@ -10,6 +11,16 @@ const roomPattern = /^\d{8}$/;
 function roomCode(): string {
   const [value] = crypto.getRandomValues(new Uint32Array(1));
   return value < 4_200_000_000 ? String(value % 100_000_000).padStart(8, '0') : roomCode();
+}
+
+function text(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+async function creation(request: Request): Promise<{ passphrase: string; event: string }> {
+  const body: unknown = await request.json().catch(() => null);
+  const fields = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
+  return { passphrase: text(fields.passphrase).trim(), event: cleanName(text(fields.event)) };
 }
 
 export default {
@@ -25,12 +36,13 @@ export default {
           503,
         );
       }
-      if (!(await passphraseMatches(request, env.ADMIN_PASSPHRASE))) {
+      const { passphrase, event } = await creation(request);
+      if (!(await passphraseMatches(passphrase, env.ADMIN_PASSPHRASE))) {
         console.warn('Room creation denied: wrong passphrase');
         return json({ error: 'That passphrase is not correct.' }, 403);
       }
       const key = token();
-      const body = JSON.stringify({ hostHash: await hash(key) });
+      const body = JSON.stringify({ hostHash: await hash(key), event });
       for (let attempt = 0; attempt < 5; attempt += 1) {
         const room = roomCode();
         const response = await env.ROOM.getByName(room).fetch(

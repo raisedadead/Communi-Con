@@ -36,14 +36,16 @@ export function Setup({ onCreated }: { onCreated: (created: Created) => void }):
   async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (pending) return;
-    const passphrase = String(new FormData(event.currentTarget).get('passphrase'));
+    const form = new FormData(event.currentTarget);
+    const passphrase = String(form.get('passphrase'));
+    const name = String(form.get('event'));
     setPending(true);
     setError('');
     try {
       const response = await fetch('/api/rooms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passphrase }),
+        body: JSON.stringify({ passphrase, event: name }),
       });
       if (response.status === 403 || response.status === 503) {
         const message = ((await response.json()) as { error: string }).error;
@@ -75,6 +77,16 @@ export function Setup({ onCreated }: { onCreated: (created: Created) => void }):
             </a>
           )}
           <form className="form" onSubmit={submit}>
+            <label className="field">
+              <span>Event name (optional)</span>
+              <input
+                className="input"
+                name="event"
+                maxLength={60}
+                autoComplete="off"
+                data-key="event"
+              />
+            </label>
             <label className="field">
               <span>Event passphrase</span>
               <input

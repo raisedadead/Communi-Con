@@ -262,12 +262,6 @@
     line-height: 1.1;
     text-wrap: balance;
   }
-  .bar:has(+ .landing) .brand-event {
-    display: inline;
-    margin-block-start: 0;
-    font-size: inherit;
-    line-height: inherit;
-  }
   .bar:has(+ .landing) .brand {
     align-items: center;
   }

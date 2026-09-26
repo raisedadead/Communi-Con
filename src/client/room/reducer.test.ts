@@ -11,6 +11,7 @@ const snapshot = (overrides: Partial<RoomSnapshot> = {}): RoomSnapshot => ({
   opinion: null,
   participants: 0,
   speaker: '',
+  event: '',
   ...overrides,
 });
 
