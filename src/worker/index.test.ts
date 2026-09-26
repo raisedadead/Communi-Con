@@ -74,6 +74,14 @@ describe('rate limits', () => {
     expect(tries.slice(0, 100).every(status => status === 404)).toBe(true);
     expect(tries[100]).toBe(429);
   });
+
+  it('limits room sockets per address', async () => {
+    const tries = await statuses(101, '/parties/room/00000000?role=stage', {
+      headers: { Upgrade: 'websocket', Origin: origin },
+    });
+    expect(tries.slice(0, 100).every(status => status === 101)).toBe(true);
+    expect(tries[100]).toBe(429);
+  });
 });
 
 describe('room creation', () => {
@@ -232,6 +240,9 @@ describe('room socket', () => {
     vote(audience, roundId);
     await next(audience, state);
     expect(put).not.toHaveBeenCalled();
+    vote(audience, roundId, 'wrap');
+    await next(audience, message => state(message) && message.opinion === 'wrap');
+    expect(put).toHaveBeenCalledOnce();
   });
 
   it('refuses a talk control from the audience', async () => {
