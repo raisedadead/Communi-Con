@@ -9,6 +9,9 @@ import type { Action, Opinion, Phase, Session, Timing } from './session';
 import type { Role, RoomSnapshot } from './protocol';
 import './style.css';
 
+const eventName = 'Communi-Con';
+const eventEdition = 'IndiaFOSS 2026';
+const eventTitle = `${eventName} @ ${eventEdition}`;
 const root = document.querySelector<HTMLDivElement>('#app')!;
 const status = document.querySelector<HTMLDivElement>('#status')!;
 const fx = document.querySelector<HTMLDivElement>('#fx')!;
@@ -80,12 +83,12 @@ function people(): string {
 function header(tag = ''): string {
   const net = session ? connected ? people() : '<span class="net off">Connecting…</span>' : '';
   const logo = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#d3f86a"/><path d="M17 12v38l11-12 9 15 8-5-9-14 17-3z" fill="#202821"/></svg>';
-  return `<header class="bar"><span class="brand">${logo}${tag ? `<span class="chip">${tag}</span>` : '<span>communi–con</span>'}</span>${net}</header>`;
+  return `<header class="bar${role === 'stage' && room ? ' stage-bar' : ''}"><span class="brand">${logo}${tag ? `<span class="chip">${tag}</span>` : `<span class="brand-name">${eventName} <span class="brand-event">@ ${eventEdition}</span></span>`}</span>${net}</header>`;
 }
 
 function cue(text: string): string {
   const rising = Array.from({ length: 7 }, (_, index) => `<span class="rise" style="--x:${8 + index * 13}%;--d:${(index * 0.45).toFixed(2)}s;--s:${[20, 28, 36][index % 3]}px;--c:${index % 2 ? '#202821' : '#f2f3eb'}"></span>`).join('');
-  return `<main class="cue"><div class="burst" aria-hidden="true">${rising}</div><span class="clap" aria-hidden="true">👏</span><h1 data-enter="cue">Round of applause</h1>${text ? `<p data-enter="cue-${escape(text)}" style="--i:1">${text}</p>` : ''}</main>`;
+  return `<div class="event-screen applause">${header()}<main class="cue"><div class="burst" aria-hidden="true">${rising}</div><span class="clap" aria-hidden="true">👏</span><h1 data-enter="cue">Round of applause</h1>${text ? `<p data-enter="cue-${escape(text)}" style="--i:1">${text}</p>` : ''}</main></div>`;
 }
 
 function clock(current: Session): string {
@@ -151,7 +154,7 @@ function stage(current: Session): string {
   const tag = phase === 'lobby' ? '<span class="live next">Up next</span>' : '<span class="live">On air</span>';
   const who = name ? `<p data-enter="tag-${phase === 'lobby'}">${tag}</p><p class="stage-name" data-enter="stage-${escape(name)}" style="--i:1">${escape(name)}</p>` : '';
   const time = phase === 'lobby' ? '' : '<p class="stage-time" role="timer" data-clock></p>';
-  return `<main class="stage"><div class="qr" role="img" aria-label="QR code for ${escape(links.audience())}">${qr}</div><div class="stage-text">${who}<h1 class="stage-line" data-enter="line-${line}" style="--i:2">${line}</h1>${time}</div><p class="stage-count">${people()}</p><p class="stage-host">Cannot scan? Go to <strong>${escape(location.host)}</strong> and enter <strong>${code()}</strong></p></main>`;
+  return `<div class="event-screen">${header()}<main class="stage"><div class="qr" role="img" aria-label="QR code for ${escape(links.audience())}">${qr}</div><div class="stage-text">${who}<h1 class="stage-line" data-enter="line-${line}" style="--i:2">${line}</h1>${time}</div></main><p class="stage-host">Cannot scan? Go to <strong>${escape(location.host)}</strong> and enter <strong>${code()}</strong></p></div>`;
 }
 
 function speakerForm(label: string): string {
@@ -496,7 +499,7 @@ if (role === 'admin') {
 }
 document.body.dataset.role = role;
 document.body.insertAdjacentHTML('afterbegin', `<div class="ambient" aria-hidden="true">${ambient()}</div>`);
-document.title = { audience: 'Communi-Con', stage: 'Stage · Communi-Con', admin: 'Co-chair · Communi-Con' }[role];
+document.title = { audience: eventTitle, stage: `Stage · ${eventTitle}`, admin: `Co-chair · ${eventTitle}` }[role];
 setInterval(tick, 250);
 if (room && (role !== 'admin' || key)) start();
 else render();
