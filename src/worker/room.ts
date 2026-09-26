@@ -11,7 +11,6 @@ export interface Env {
   ROOM: DurableObjectNamespace<Room>;
   ASSETS: Fetcher;
   CREATE_LIMIT: RateLimit;
-  JOIN_LIMIT: RateLimit;
   ADMIN_PASSPHRASE?: string;
 }
 

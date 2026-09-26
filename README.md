@@ -64,6 +64,8 @@ A talk lasts 10 minutes by default. Voting opens at 05:00 for 5 minutes. Change 
 - One browser is one participant. There is no ticket check.
 - The co-chair link gives full control. Do not show it on the projector.
 - A person who guesses an 8-digit room code can open its stage screen and vote.
+- Each talk accepts votes from up to 2000 phones.
+- Room creation allows 10 attempts per minute from one network address.
 
 ## Tech Stack
 

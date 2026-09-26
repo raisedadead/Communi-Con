@@ -68,20 +68,6 @@ describe('rate limits', () => {
     expect(tries.slice(0, 10).every(status => status === 403)).toBe(true);
     expect(tries[10]).toBe(429);
   });
-
-  it('limits room sessions per address', async () => {
-    const tries = await statuses(101, '/api/rooms/00000000/session?role=stage');
-    expect(tries.slice(0, 100).every(status => status === 404)).toBe(true);
-    expect(tries[100]).toBe(429);
-  });
-
-  it('limits room sockets per address', async () => {
-    const tries = await statuses(101, '/parties/room/00000000?role=stage', {
-      headers: { Upgrade: 'websocket', Origin: origin },
-    });
-    expect(tries.slice(0, 100).every(status => status === 101)).toBe(true);
-    expect(tries[100]).toBe(429);
-  });
 });
 
 describe('room creation', () => {

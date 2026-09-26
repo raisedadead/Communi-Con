@@ -47,7 +47,7 @@ export function Setup({ onCreated }: { onCreated: (created: Created) => void }):
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passphrase, event: name }),
       });
-      if (response.status === 403 || response.status === 503) {
+      if ([403, 429, 503].includes(response.status)) {
         const message = ((await response.json()) as { error: string }).error;
         setPending(false);
         setError(message);

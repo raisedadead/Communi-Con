@@ -23,19 +23,17 @@ async function creation(request: Request): Promise<{ passphrase: string; event: 
   return { passphrase: text(fields.passphrase).trim(), event: cleanName(text(fields.event)) };
 }
 
-async function limited(limiter: RateLimit, scope: string, request: Request): Promise<boolean> {
+async function limited(limiter: RateLimit, request: Request): Promise<boolean> {
   const address = request.headers.get('CF-Connecting-IP') || 'unknown';
-  return !(await limiter.limit({ key: `${scope}:${address}` })).success;
+  return !(await limiter.limit({ key: address })).success;
 }
-
-const tooMany = (): Response =>
-  json({ error: 'Too many requests. Wait a minute and try again.' }, 429);
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname === '/api/rooms' && request.method === 'POST') {
-      if (await limited(env.CREATE_LIMIT, 'create', request)) return tooMany();
+      if (await limited(env.CREATE_LIMIT, request))
+        return json({ error: 'Too many attempts. Wait a minute and try again.' }, 429);
       if (!sameOrigin(request))
         return json({ error: 'Open /admin on this site to create a room.' }, 403);
       if (!env.ADMIN_PASSPHRASE?.trim()) {
@@ -64,7 +62,6 @@ export default {
     }
     const bootstrap = url.pathname.match(/^\/api\/rooms\/(\d{8})\/session$/);
     if (bootstrap && request.method === 'GET') {
-      if (await limited(env.JOIN_LIMIT, 'session', request)) return tooMany();
       if (!roleOf(request)) return json({ error: 'Unknown screen.' }, 400);
       const headers = new Headers(request.headers);
       let identity = cookie(request, 'cc_participant');
@@ -92,7 +89,6 @@ export default {
       )
         return json({ error: 'Not found.' }, 404);
       if (!sameOrigin(request)) return json({ error: 'Connection origin denied.' }, 403);
-      if (await limited(env.JOIN_LIMIT, 'socket', request)) return tooMany();
       return (
         (await routePartykitRequest(request, env)) ||
         json({ error: 'No event has this code.' }, 404)
