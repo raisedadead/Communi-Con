@@ -2,7 +2,7 @@ import QRCode from 'qrcode';
 import { ambient } from './ambient';
 import { connectRoom } from './connection';
 import { crowd, syncCrowd } from './crowd';
-import { codeError, landing } from './landing';
+import { codeError, landing, paintCode } from './landing';
 import type { RoomConnection } from './connection';
 import { ballotOpen, canNudge, phaseOf, timeLabel, timingProblem, transition, votingWindow } from './session';
 import type { Action, Opinion, Phase, Session, Timing } from './session';
@@ -154,7 +154,7 @@ function stage(current: Session): string {
   const tag = phase === 'lobby' ? '<span class="live next">Up next</span>' : '<span class="live">On air</span>';
   const who = name ? `<p data-enter="tag-${phase === 'lobby'}">${tag}</p><p class="stage-name" data-enter="stage-${escape(name)}" style="--i:1">${escape(name)}</p>` : '';
   const time = phase === 'lobby' ? '' : '<p class="stage-time" role="timer" data-clock></p>';
-  return `<div class="event-screen">${header()}<main class="stage"><div class="qr" role="img" aria-label="QR code for ${escape(links.audience())}">${qr}</div><div class="stage-text">${who}<h1 class="stage-line" data-enter="line-${line}" style="--i:2">${line}</h1>${time}</div></main><p class="stage-host">Cannot scan? Go to <strong>${escape(location.host)}</strong> and enter <strong>${code()}</strong></p></div>`;
+  return `<div class="event-screen">${header()}<main class="stage"><div class="qr" role="img" aria-label="QR code for ${escape(links.audience())}">${qr}</div><div class="stage-text">${who}<h1 class="stage-line" data-enter="line-${line}" style="--i:2">${line}</h1>${time}</div></main><p class="stage-host">Visit <strong>${escape(location.host)}</strong> and enter <strong>${code()}</strong></p></div>`;
 }
 
 function speakerForm(label: string): string {
@@ -316,6 +316,8 @@ function render(): void {
     const restored = active?.dataset.key ? root.querySelector<HTMLElement>(`[data-key="${active.dataset.key}"]`) : null;
     restored?.focus();
     if (active instanceof HTMLInputElement && restored instanceof HTMLInputElement) restored.setSelectionRange(active.selectionStart, active.selectionEnd);
+    const code = root.querySelector<HTMLInputElement>('.otp-input');
+    if (code) paintCode(code);
   }
   updateLive();
 }
@@ -450,6 +452,14 @@ async function share(kind: 'audience' | 'stage' | 'admin'): Promise<void> {
     if (!(error instanceof DOMException && error.name === 'AbortError')) prompt('Copy this link:', url);
   }
 }
+
+root.addEventListener('input', event => {
+  if (event.target instanceof HTMLInputElement && event.target.classList.contains('otp-input')) paintCode(event.target);
+});
+
+document.addEventListener('selectionchange', () => {
+  if (document.activeElement instanceof HTMLInputElement && document.activeElement.classList.contains('otp-input')) paintCode(document.activeElement);
+});
 
 root.addEventListener('click', async event => {
   const target = event.target instanceof Element ? event.target.closest<HTMLElement>('button') : null;

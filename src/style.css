@@ -48,11 +48,11 @@ svg { width: 20px; height: 20px; flex: none; }
 
 .bar, .screen { max-width: 30rem; margin-inline: auto; padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right)); }
 .bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding-block: calc(14px + env(safe-area-inset-top)) 14px; font-size: 15px; }
-.brand { display: inline-flex; min-width: 0; max-width: 100%; align-items: center; gap: 10px; font-family: var(--display); font-size: 20px; font-weight: 700; letter-spacing: -0.03em; }
-.brand-name { min-width: 0; font-size: 28px; line-height: 1.1; overflow-wrap: break-word; }
-.brand-event { display: block; margin-block-start: 4px; color: var(--muted); font-size: 16px; font-weight: 500; line-height: 1.4; letter-spacing: 0; }
+.brand { --name: 28px; display: inline-flex; min-width: 0; max-width: 100%; align-items: center; gap: 10px; font-family: var(--display); font-size: 20px; font-weight: 700; letter-spacing: -0.03em; }
+.brand-name { min-width: 0; font-size: var(--name); line-height: 1.1; overflow-wrap: break-word; text-box: trim-both cap alphabetic; }
+.brand-event { display: block; margin-block-start: 0.5em; color: var(--lime); font-size: 0.6em; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; white-space: nowrap; }
 .brand .logo { width: 30px; height: 30px; }
-.brand:has(.brand-name) .logo { width: 36px; height: 36px; }
+.brand:has(.brand-name) .logo { width: calc(var(--name) * 1.77); height: calc(var(--name) * 1.77); }
 .chip { padding: 2px 8px; border: 1px solid var(--edge); border-radius: 999px; color: var(--muted); font-size: 13px; font-weight: 600; letter-spacing: 0; white-space: nowrap; }
 .net { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .net.off { color: var(--warn); }
@@ -70,8 +70,23 @@ svg { width: 20px; height: 20px; flex: none; }
 .landing { display: grid; gap: 48px; max-width: 66rem; margin-inline: auto; padding: 4px max(16px, env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
 .hero { display: grid; gap: 28px; }
 .pitch { display: grid; gap: 16px; justify-items: start; }
-.pitch .inline-form { width: 100%; max-width: 26rem; }
+.pitch .join-form { width: 100%; max-width: 26rem; }
 .inline-form .field-error { grid-column: 1 / -1; }
+.join-form { display: flex; flex-wrap: wrap; gap: 8px; }
+.join-form label, .join-form .field-error { flex-basis: 100%; font-weight: 600; }
+.join-form .button { flex: 1 0 auto; }
+.otp { position: relative; display: block; flex: 1 1 17rem; }
+.otp-input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; color: transparent; caret-color: transparent; font-size: 17px; outline: none; }
+.otp-input::selection { background: transparent; }
+.otp-slots { display: flex; align-items: center; gap: 8px; }
+.otp-group { display: flex; flex: 1; }
+.otp-slot { position: relative; display: grid; flex: 1; place-items: center; min-width: 0; height: 60px; border: 1px solid var(--edge); border-inline-start-width: 0; background: var(--page); font: 600 24px/1 var(--display); font-variant-numeric: tabular-nums; }
+.otp-slot:first-child { border-inline-start-width: 1px; border-start-start-radius: 14px; border-end-start-radius: 14px; }
+.otp-slot:last-child { border-start-end-radius: 14px; border-end-end-radius: 14px; }
+.otp-separator { flex: none; width: 10px; height: 2px; border-radius: 1px; background: var(--muted); }
+.otp-input:focus ~ .otp-slots .active { z-index: 1; outline: 2px solid var(--lime); outline-offset: -1px; }
+.otp-input:focus ~ .otp-slots .active:empty::after { content: ''; width: 2px; height: 26px; background: var(--lime); }
+.otp-input[aria-invalid="true"] ~ .otp-slots .otp-slot { border-color: var(--warn); }
 .pitch .display { font-size: clamp(44px, 12vw, 76px); }
 .word { display: inline-block; }
 .hint { padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--card) 85%, transparent); color: var(--muted); font-size: 14px; }
@@ -96,8 +111,9 @@ svg { width: 20px; height: 20px; flex: none; }
 .step-number { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--lime); color: var(--ink); font-size: 13px; font-weight: 700; }
 .step p { color: var(--muted); font-size: 15px; }
 @media (min-width: 760px) {
-  .bar:has(+ .landing) .brand-name { font-size: clamp(24px, 4vw, 32px); line-height: 1.4; text-wrap: balance; }
-  .bar:has(+ .landing) .brand-event { display: inline; margin-block-start: 0; color: inherit; font: inherit; letter-spacing: inherit; }
+  .bar:has(+ .landing) .brand-name { font-size: clamp(24px, 4vw, 32px); line-height: 1.1; text-wrap: balance; }
+  .bar:has(+ .landing) .brand-event { display: inline; margin-block-start: 0; font-size: inherit; line-height: inherit; }
+  .bar:has(+ .landing) .brand { align-items: center; }
   .bar:has(+ .landing) .logo { width: 30px; height: 30px; }
   .hero { grid-template-columns: 1fr 1.1fr; align-items: center; gap: 48px; padding-block-start: 24px; }
   .steps ol { grid-template-columns: repeat(3, 1fr); }
@@ -172,6 +188,7 @@ svg { width: 20px; height: 20px; flex: none; }
 .event-screen { display: flex; flex-direction: column; min-height: 100dvh; }
 .event-screen > .bar { width: 100%; }
 .applause { --text: var(--ink); --muted: var(--ink); --warn: var(--ink); background: var(--lime) url('/bg-lime.svg') 0 0 / 400px 400px; color: var(--ink); }
+.applause .brand-event { color: inherit; }
 .applause .logo { border: 1px solid var(--ink); border-radius: 25%; }
 .applause .badge { background: var(--ink); color: var(--lime); }
 .cue { position: relative; display: grid; flex: 1; place-content: center; justify-items: center; gap: 16px; padding: 24px; overflow: hidden; text-align: center; }
@@ -182,9 +199,7 @@ svg { width: 20px; height: 20px; flex: none; }
 .burst { display: none; }
 
 .stage-bar { width: 100%; max-width: none; padding: 3vmin 4vmin 0; }
-.stage-bar .brand-name { font-size: clamp(28px, 4vmin, 48px); }
-.stage-bar .brand-event { font-size: clamp(16px, 2.4vmin, 28px); }
-.stage-bar .brand .logo { width: clamp(36px, 5vmin, 64px); height: clamp(36px, 5vmin, 64px); }
+.stage-bar .brand { --name: clamp(28px, 4vmin, 48px); }
 .stage { display: flex; flex: 1; flex-wrap: wrap; align-items: center; align-content: center; justify-content: center; gap: 4vmin 6vmin; padding: 4vmin; text-align: center; }
 .qr { flex: none; width: min(86vw, 36vh); aspect-ratio: 1; border-radius: 2vmin; overflow: hidden; background: #fff; }
 .qr svg { display: block; width: 100%; height: 100%; }
@@ -248,7 +263,8 @@ svg { width: 20px; height: 20px; flex: none; }
   .tick.enter { animation: check 500ms cubic-bezier(0.34, 1.35, 0.64, 1) both; }
   .emoji.enter { animation: press 350ms cubic-bezier(0.34, 1.96, 0.64, 1); }
   .notice.enter { animation: toast 350ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .input.enter { animation: shake 400ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .otp-input:focus ~ .otp-slots .active:empty::after { animation: pulse 1s ease-in-out infinite; }
+  .input.enter, .otp.enter { animation: shake 400ms cubic-bezier(0.22, 1, 0.36, 1); }
   .badge.enter { animation: badge 500ms cubic-bezier(0.34, 1.36, 0.64, 1) both; }
   .badge.pop { animation: pop 500ms cubic-bezier(0.34, 1.45, 0.64, 1); }
 }

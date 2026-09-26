@@ -22,10 +22,28 @@ function scene(): string {
 
 export const codeError = 'Enter the 8-digit code from the stage screen.';
 
+const codeLength = 8;
+
+function slots(from: number): string {
+  return `<span class="otp-group">${Array.from({ length: codeLength / 2 }, (_, index) => `<span class="otp-slot" data-slot="${from + index}"></span>`).join('')}</span>`;
+}
+
 function join(invalid: boolean): string {
   const error = invalid ? `<p class="field-error" id="code-error">${codeError}</p>` : '';
-  const state = invalid ? ' aria-invalid="true" aria-describedby="code-error" data-enter="code-error"' : '';
-  return `<form class="inline-form" data-join><label for="code">Event code</label><input class="input" id="code" name="code" inputmode="numeric" autocomplete="off" enterkeyhint="go" placeholder="1234-5678" data-key="code"${state}><button class="button primary" data-key="join">Join</button>${error}</form>`;
+  const state = invalid ? ' aria-invalid="true" aria-describedby="code-error"' : '';
+  const otp = `<span class="otp"${invalid ? ' data-enter="code-error"' : ''}><input class="otp-input" id="code" name="code" inputmode="numeric" autocomplete="off" enterkeyhint="go" spellcheck="false" data-key="code"${state}><span class="otp-slots" aria-hidden="true">${slots(0)}<span class="otp-separator"></span>${slots(codeLength / 2)}</span></span>`;
+  return `<form class="join-form" data-join><label for="code">Event code</label>${otp}<button class="button primary" data-key="join">Join</button>${error}</form>`;
+}
+
+export function paintCode(input: HTMLInputElement): void {
+  const digits = input.value.replace(/\D/g, '').slice(0, codeLength);
+  if (input.value !== digits) input.value = digits;
+  if (document.activeElement === input && input.selectionStart !== digits.length) input.setSelectionRange(digits.length, digits.length);
+  for (const slot of input.parentElement!.querySelectorAll<HTMLElement>('[data-slot]')) {
+    const index = Number(slot.dataset.slot);
+    slot.textContent = digits[index] ?? '';
+    slot.classList.toggle('active', index === Math.min(digits.length, codeLength - 1));
+  }
 }
 
 export function landing(invalid = false): string {
