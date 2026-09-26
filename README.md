@@ -37,12 +37,14 @@ Anonymous live votes for community talks. The audience votes on phones. The co-c
 ## Deploy
 
 1. Click **Deploy to Cloudflare**. Cloudflare copies this repository to your GitHub account and deploys it to your Cloudflare account.
-1. Set `ADMIN_PASSPHRASE` when Cloudflare asks for it. Co-chairs need this passphrase to create a room.
+1. Set `ADMIN_PASSPHRASE` when Cloudflare asks for it. Use a long random value. Co-chairs need it to create a room.
 1. Open `https://<worker>.<subdomain>.workers.dev/admin`.
 
 If the build fails at the install step, add the build variable `PNPM_VERSION` = `12.4.1` in **Settings** > **Build**, then retry the build.
 
 To change the passphrase, set a new value for the `ADMIN_PASSPHRASE` secret in **Settings** > **Variables and Secrets**. Rooms that exist continue to work.
+
+The app runs on the Workers Free plan. A large event can exceed the free daily limits. If that is a risk, use the Workers Paid plan.
 
 ## Run the event
 
@@ -51,7 +53,7 @@ To change the passphrase, set a new value for the `ADMIN_PASSPHRASE` secret in *
 1. Tap **Share co-chair link** to give control to the other co-chairs.
 1. For each talk: type the speaker name, tap **Start talk**, then **Cue applause**, then **Next talk**.
 
-A talk lasts 10 minutes by default. Voting opens at 05:00 for 5 minutes. Change these values in **Timing**, or tap **Open voting now**.
+A talk lasts 10 minutes. Voting opens at 05:00 for 5 minutes. Change these values in **Timing**, or tap **Open voting now**.
 
 ## Voting
 
@@ -67,16 +69,20 @@ A talk lasts 10 minutes by default. Voting opens at 05:00 for 5 minutes. Change 
 - Each talk accepts votes from up to 2000 phones.
 - Room creation allows 10 attempts per minute from one network address.
 
-## Tech Stack
+## Change the defaults
 
-- **Frontend**: [React](https://react.dev) with [Vite](https://vite.dev) and plain CSS
-- **Backend**: [Cloudflare Workers](https://workers.cloudflare.com) with static assets
-- **Real time**: [Durable Objects](https://developers.cloudflare.com/durable-objects/) through [PartyServer and PartySocket](https://github.com/cloudflare/partykit)
-- **Local development**: [Cloudflare Vite plugin](https://developers.cloudflare.com/workers/vite-plugin/), which runs the Worker and the Durable Object in `vite dev`
-- **Testing**: [Vitest](https://vitest.dev) with the [Workers Vitest integration](https://developers.cloudflare.com/workers/testing/vitest-integration/)
-- **Tooling**: TypeScript, [oxlint and oxfmt](https://oxc.rs)
-- **Deployment**: [Wrangler](https://developers.cloudflare.com/workers/wrangler/), or the Deploy to Cloudflare button
-- **Package manager**: [pnpm](https://pnpm.io)
+Fork the repository, edit the value, and deploy your fork.
+
+| Default                               | File                                      |
+| ------------------------------------- | ----------------------------------------- |
+| Votes per talk: 2000                  | `src/worker/room.ts`, `voteLimit`         |
+| Room creation attempts: 10 per minute | `wrangler.jsonc`, `ratelimits`            |
+| Talk length and voting window         | `src/shared/session.ts`, `initialSession` |
+| Participant cookie life: 1 day        | `src/worker/http.ts`, `setCookie`         |
+
+## Tech stack
+
+React and Vite on the phones. Cloudflare Workers, Durable Objects, and [PartyServer](https://github.com/cloudflare/partykit) on the server. TypeScript, Vitest, oxlint, and pnpm for the tooling.
 
 ## Contribute
 
