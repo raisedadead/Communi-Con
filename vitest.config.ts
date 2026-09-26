@@ -5,7 +5,13 @@ export default defineConfig({
   test: {
     passWithNoTests: true,
     projects: [
-      { test: { name: 'shared', include: ['src/shared/**/*.test.ts'], environment: 'node' } },
+      {
+        test: {
+          name: 'shared',
+          include: ['src/shared/**/*.test.ts', 'src/client/**/*.test.ts'],
+          environment: 'node',
+        },
+      },
       {
         plugins: [
           cloudflareTest({

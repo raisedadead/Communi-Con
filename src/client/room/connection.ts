@@ -1,6 +1,6 @@
-import PartySocket from 'partysocket';
-import type { Reactions, Role, RoomSnapshot, ServerMessage } from '../shared/protocol';
-import type { Action } from '../shared/session';
+import { PartySocket } from 'partysocket';
+import type { Reactions, Role, RoomSnapshot, ServerMessage } from '../../shared/protocol';
+import type { Action } from '../../shared/session';
 
 interface Callbacks {
   state: (snapshot: RoomSnapshot) => void;

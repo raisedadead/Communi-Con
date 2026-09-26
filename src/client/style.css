@@ -311,26 +311,7 @@ svg {
   display: block;
   flex: 1 1 17rem;
 }
-.otp-input {
-  forced-color-adjust: none;
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: transparent;
-  caret-color: transparent;
-  font-size: 17px;
-  outline: none;
-}
-.otp-input::selection {
-  background: transparent;
-}
 .otp-slots {
-  pointer-events: none;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -368,18 +349,16 @@ svg {
   border-radius: 1px;
   background: var(--muted);
 }
-.otp-input:focus ~ .otp-slots .active {
-  z-index: 1;
+.otp-slot.active {
   outline: 2px solid var(--lime);
   outline-offset: -1px;
 }
-.otp-input:focus ~ .otp-slots .active:empty::after {
-  content: '';
+.otp-caret {
   width: 2px;
   height: 26px;
   background: var(--lime);
 }
-.otp-input[aria-invalid='true'] ~ .otp-slots .otp-slot {
+.otp:has([aria-invalid='true']) .otp-slot {
   border-color: var(--warn);
 }
 .pitch .display {
@@ -754,6 +733,10 @@ svg {
   font-size: 15px;
 }
 .adjust {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
@@ -1039,7 +1022,7 @@ svg {
   overflow: hidden;
   background: #fff;
 }
-.qr svg {
+.qr img {
   display: block;
   width: 100%;
   height: 100%;
@@ -1297,7 +1280,7 @@ svg {
   .notice.enter {
     animation: toast 350ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
-  .otp-input:focus ~ .otp-slots .active:empty::after {
+  .otp-caret {
     animation: pulse 1s ease-in-out infinite;
   }
   .input.enter,
