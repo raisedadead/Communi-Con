@@ -62,7 +62,7 @@ export function useRoom(
     let first = true;
     const socket = connectRoom(room, role, key, {
       state(snapshot) {
-        if (role === 'admin' && first) rememberAdminRoom(room);
+        if (role === 'admin' && first) rememberAdminRoom(room, key);
         first = false;
         dispatch({ type: 'state', snapshot, at: Date.now() });
       },

@@ -21,8 +21,8 @@ export function storeAdminKey(room: string, key: string): void {
 
 export function readAdminKey(room: string): string {
   const shared = new URLSearchParams(location.hash.slice(1)).get('key');
-  if (roomPattern.test(room) && shared && keyPattern.test(shared)) storeAdminKey(room, shared);
   if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+  if (roomPattern.test(room) && shared && keyPattern.test(shared)) return shared;
   return room ? localStorage.getItem(`cc-key:${room}`) || '' : '';
 }
 
@@ -30,7 +30,8 @@ export function lastAdminRoom(): string | null {
   return localStorage.getItem('cc-room');
 }
 
-export function rememberAdminRoom(room: string): void {
+export function rememberAdminRoom(room: string, key: string): void {
+  storeAdminKey(room, key);
   localStorage.setItem('cc-room', room);
 }
 
