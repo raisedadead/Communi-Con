@@ -65,6 +65,17 @@ A talk lasts 10 minutes by default. Voting opens at 05:00 for 5 minutes. Change 
 - The co-chair link gives full control. Do not show it on the projector.
 - A person who guesses an 8-digit room code can open its stage screen and vote.
 
+## Tech Stack
+
+- **Frontend**: [React](https://react.dev) with [Vite](https://vite.dev) and plain CSS
+- **Backend**: [Cloudflare Workers](https://workers.cloudflare.com) with static assets
+- **Real time**: [Durable Objects](https://developers.cloudflare.com/durable-objects/) through [PartyServer and PartySocket](https://github.com/cloudflare/partykit)
+- **Local development**: [Cloudflare Vite plugin](https://developers.cloudflare.com/workers/vite-plugin/), which runs the Worker and the Durable Object in `vite dev`
+- **Testing**: [Vitest](https://vitest.dev) with the [Workers Vitest integration](https://developers.cloudflare.com/workers/testing/vitest-integration/)
+- **Tooling**: TypeScript, [oxlint and oxfmt](https://oxc.rs)
+- **Deployment**: [Wrangler](https://developers.cloudflare.com/workers/wrangler/), or the Deploy to Cloudflare button
+- **Package manager**: [pnpm](https://pnpm.io)
+
 ## Contribute
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md).
