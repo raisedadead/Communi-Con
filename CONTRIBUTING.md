@@ -19,14 +19,24 @@ Open <http://localhost:5173/admin>. `pnpm dev` runs the Worker and the Durable O
 
 ## Test on phones
 
-Start the app without the local explorer, then start a tunnel in a second terminal:
+Use a Cloudflare quick tunnel. It needs no Cloudflare account. The rooms stay in the local Durable Object storage in `.wrangler/state`, so no remote database is necessary.
 
-```sh
-X_LOCAL_EXPLORER=false pnpm dev
-cloudflared tunnel --no-autoupdate --url http://localhost:5173
-```
+1. Install `cloudflared`. On macOS: `brew install cloudflared`. For other systems, see the [downloads page](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/).
+1. In the first terminal, start the app without the local explorer:
 
-The local explorer shows the local data. Do not expose it through a tunnel.
+   ```sh
+   X_LOCAL_EXPLORER=false pnpm dev
+   ```
+
+1. In the second terminal, start the tunnel:
+
+   ```sh
+   cloudflared tunnel --no-autoupdate --url http://localhost:5173
+   ```
+
+1. Open the `https://<name>.trycloudflare.com` address from the tunnel output on your phones. Open `/admin` on that address to create a room.
+
+Do not add `--http-host-header` to the tunnel command. The Worker accepts a room request or a live connection only when the browser address and the request address are the same. The local explorer shows the local data, so do not expose it through a tunnel.
 
 ## Check a change
 
