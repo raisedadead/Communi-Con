@@ -1,11 +1,6 @@
 import QRCode from 'qrcode';
-import { ambient } from './ambient';
-import type { RoomConnection } from './connection';
-import { connectRoom } from './connection';
-import { crowd, syncCrowd } from './crowd';
-import { codeError, guardCode, landing, paintCode } from './landing';
-import type { Role, RoomSnapshot } from './protocol';
-import type { Action, Opinion, Phase, Session, Timing } from './session';
+import type { Role, RoomSnapshot } from '../shared/protocol';
+import type { Action, Opinion, Phase, Session, Timing } from '../shared/session';
 import {
   ballotOpen,
   canNudge,
@@ -14,7 +9,12 @@ import {
   timingProblem,
   transition,
   votingWindow,
-} from './session';
+} from '../shared/session';
+import { ambient } from './ambient';
+import type { RoomConnection } from './connection';
+import { connectRoom } from './connection';
+import { crowd, syncCrowd } from './crowd';
+import { codeError, guardCode, landing, paintCode } from './landing';
 import './style.css';
 
 const eventName = 'Communi-Con';

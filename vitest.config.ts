@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     passWithNoTests: true,
     projects: [
-      { test: { name: 'shared', include: ['src/**/*.test.ts'], environment: 'node' } },
+      { test: { name: 'shared', include: ['src/shared/**/*.test.ts'], environment: 'node' } },
       {
         plugins: [
           cloudflareTest({
@@ -16,7 +16,7 @@ export default defineConfig({
             },
           }),
         ],
-        test: { name: 'worker', include: ['worker/**/*.test.ts'] },
+        test: { name: 'worker', include: ['src/worker/**/*.test.ts'] },
       },
     ],
   },

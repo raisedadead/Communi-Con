@@ -4,6 +4,6 @@
   "files": { "includes": ["**", "!pnpm-lock.yaml", "!.scratchpad", "!public/**/*.svg"] },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
   "javascript": { "formatter": { "quoteStyle": "single", "arrowParentheses": "asNeeded" } },
-  "linter": { "enabled": true, "rules": { "recommended": true } },
+  "linter": { "enabled": true, "rules": { "preset": "recommended" } },
   "assist": { "actions": { "source": { "organizeImports": "on" } } }
 }

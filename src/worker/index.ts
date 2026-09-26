@@ -1,8 +1,14 @@
 import type { Connection, ConnectionContext, WSMessage } from 'partyserver';
 import { routePartykitRequest, Server } from 'partyserver';
-import type { Reactions, Results, Role, RoomSnapshot } from '../src/protocol';
-import type { Action, Opinion, Session } from '../src/session';
-import { ballotOpen, initialSession, transition, validTiming, votingWindow } from '../src/session';
+import type { Reactions, Results, Role, RoomSnapshot } from '../shared/protocol';
+import type { Action, Opinion, Session } from '../shared/session';
+import {
+  ballotOpen,
+  initialSession,
+  transition,
+  validTiming,
+  votingWindow,
+} from '../shared/session';
 
 interface Env {
   ROOM: DurableObjectNamespace<Room>;

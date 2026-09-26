@@ -1,6 +1,6 @@
 import { exports } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
-import type { RoomSnapshot, ServerMessage } from '../src/protocol';
+import type { RoomSnapshot, ServerMessage } from '../shared/protocol';
 
 const worker = exports as unknown as { default: Fetcher };
 const origin = 'http://example.com';
