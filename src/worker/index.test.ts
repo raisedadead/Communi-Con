@@ -1,6 +1,8 @@
-import { exports } from 'cloudflare:workers';
-import { describe, expect, it } from 'vitest';
+import { runInDurableObject } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
+import { describe, expect, it, vi } from 'vitest';
 import type { RoomSnapshot, ServerMessage } from '../shared/protocol';
+import { type Env, type Room, voteLimit } from './room';
 
 const worker = exports as unknown as { default: Fetcher };
 const origin = 'http://example.com';
@@ -119,51 +121,89 @@ describe('room session', () => {
   });
 });
 
+async function openVoting(room: string, key: string): Promise<RoomSnapshot> {
+  const admin = await join(room, `role=admin&key=${key}`);
+  let snapshot = (await next(admin, state)) as RoomSnapshot;
+  const send = (action: object): void =>
+    admin.send(
+      JSON.stringify({
+        type: 'action',
+        action,
+        roundId: snapshot.roundId,
+        version: snapshot.version,
+      }),
+    );
+  send({ type: 'start' });
+  snapshot = (await next(
+    admin,
+    message => state(message) && message.session.mode === 'talk',
+  )) as RoomSnapshot;
+  send({ type: 'open' });
+  return (await next(
+    admin,
+    message => state(message) && message.session.openedAt !== null,
+  )) as RoomSnapshot;
+}
+
+async function joinAudience(room: string): Promise<WebSocket> {
+  const cookie =
+    (await call(`/api/rooms/${room}/session?role=audience`)).headers
+      .get('Set-Cookie')
+      ?.split(';')[0] ?? '';
+  const audience = await join(room, 'role=audience', cookie);
+  await next(audience, state);
+  return audience;
+}
+
+function vote(audience: WebSocket, roundId: string, opinion = 'keep'): void {
+  audience.send(JSON.stringify({ type: 'action', action: { type: 'vote', opinion }, roundId }));
+}
+
+function roomStub(room: string): DurableObjectStub<Room> {
+  return (env as unknown as Env).ROOM.getByName(room);
+}
+
 describe('room socket', () => {
   it('counts an audience vote for the co-chairs', async () => {
     const { room, key } = await createRoom();
+    const { roundId } = await openVoting(room, key);
     const admin = await join(room, `role=admin&key=${key}`);
-    let snapshot = (await next(admin, state)) as RoomSnapshot;
-    const send = (action: object): void =>
-      admin.send(
-        JSON.stringify({
-          type: 'action',
-          action,
-          roundId: snapshot.roundId,
-          version: snapshot.version,
-        }),
-      );
-
-    send({ type: 'start' });
-    snapshot = (await next(
-      admin,
-      message => state(message) && message.session.mode === 'talk',
-    )) as RoomSnapshot;
-    send({ type: 'open' });
-    snapshot = (await next(
-      admin,
-      message => state(message) && message.session.openedAt !== null,
-    )) as RoomSnapshot;
-
-    const cookie =
-      (await call(`/api/rooms/${room}/session?role=audience`)).headers
-        .get('Set-Cookie')
-        ?.split(';')[0] ?? '';
-    const audience = await join(room, 'role=audience', cookie);
-    await next(audience, state);
-    audience.send(
-      JSON.stringify({
-        type: 'action',
-        action: { type: 'vote', opinion: 'keep' },
-        roundId: snapshot.roundId,
-      }),
-    );
-
+    await next(admin, state);
+    vote(await joinAudience(room), roundId);
     const counted = (await next(
       admin,
       message => state(message) && message.results?.total === 1,
     )) as RoomSnapshot;
     expect(counted.results).toEqual({ keep: 1, wrap: 0, total: 1 });
+  });
+
+  it('refuses a new voter when the round is full', async () => {
+    const { room, key } = await createRoom();
+    const { roundId } = await openVoting(room, key);
+    await runInDurableObject(roomStub(room), instance => {
+      const { votes } = (instance as unknown as { room: { votes: Record<string, string> } }).room;
+      for (let index = 0; index < voteLimit; index += 1) votes[String(index)] = 'keep';
+    });
+    const audience = await joinAudience(room);
+    vote(audience, roundId);
+    expect(await next(audience, message => message.type === 'error')).toEqual({
+      type: 'error',
+      message: 'This vote is full.',
+    });
+  });
+
+  it('does not rewrite the room for an unchanged vote', async () => {
+    const { room, key } = await createRoom();
+    const { roundId } = await openVoting(room, key);
+    const audience = await joinAudience(room);
+    vote(audience, roundId);
+    await next(audience, message => state(message) && message.opinion === 'keep');
+    const put = await runInDurableObject(roomStub(room), (_, context) =>
+      vi.spyOn(context.storage, 'put'),
+    );
+    vote(audience, roundId);
+    await next(audience, state);
+    expect(put).not.toHaveBeenCalled();
   });
 
   it('refuses a talk control from the audience', async () => {

@@ -30,6 +30,7 @@ interface Peer {
 }
 
 const reactionLimit = 12;
+export const voteLimit = 2000;
 
 export class Room extends Server<Env> {
   static options = { hibernate: true };
@@ -235,7 +236,16 @@ export class Room extends Server<Env> {
         fail('Voting is closed.');
         return;
       }
-      const first = this.room.votes[peer.participant!] === undefined;
+      const previous = this.room.votes[peer.participant!];
+      if (previous === action.opinion) {
+        this.send([connection]);
+        return;
+      }
+      const first = previous === undefined;
+      if (first && Object.keys(this.room.votes).length >= voteLimit) {
+        fail('This vote is full.');
+        return;
+      }
       this.room.votes[peer.participant!] = action.opinion;
       await this.ctx.storage.put('room', this.room);
       this.send([connection, ...this.peers('admin')]);
